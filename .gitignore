@@ -1,0 +1,5 @@
+bin/
+output/
+.env
+.vagrant
+__debug*

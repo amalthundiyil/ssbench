@@ -1,0 +1,10 @@
+version = 2
+
+repository = "unpacked.cern.ch"
+absolute-mountpoint = "/cvmfs/unpacked.cern.ch"
+
+[proxy_plugins]
+    [proxy_plugins.cvmfs]
+        type = "snapshot"
+        address = "/tmp/containerd-cvmfs-grpc/containerd-cvmfs-grpc.sock"
+        
