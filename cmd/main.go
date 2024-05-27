@@ -83,26 +83,26 @@ func main() {
 		image := image
 		shortName := image.ShortName
 		drivers = append(drivers, framework.BenchmarkTestDriver{
-			TestName:      "CvmfsFullRun" + shortName,
+			TestName:      "CvmfsFull" + shortName,
 			NumberOfTests: numberOfTests,
 			TestFunction: func(b *testing.B) {
-				benchmark.CvmfsFullRun(ctx, b, image, cvmfsBinary)
+				benchmark.CvmfsFullRun(ctx, b, "CvmfsFull"+shortName, image, cvmfsBinary)
 			},
 		})
-		// drivers = append(drivers, framework.BenchmarkTestDriver{
-		// 	TestName:      "OverlayFSFull" + shortName,
-		// 	NumberOfTests: numberOfTests,
-		// 	TestFunction: func(b *testing.B) {
-		// 		benchmark.OverlayFSFullRun(ctx, b, "OverlayFSFull"+shortName, image)
-		// 	},
-		// })
-		// drivers = append(drivers, framework.BenchmarkTestDriver{
-		// 	TestName:      "SociFull" + shortName,
-		// 	NumberOfTests: numberOfTests,
-		// 	TestFunction: func(b *testing.B) {
-		// 		benchmark.SociFullRun(ctx, b, "SociFull"+shortName, image)
-		// 	},
-		// })
+		drivers = append(drivers, framework.BenchmarkTestDriver{
+			TestName:      "OverlayFSFull" + shortName,
+			NumberOfTests: numberOfTests,
+			TestFunction: func(b *testing.B) {
+				benchmark.OverlayFSFullRun(ctx, b, "OverlayFSFull"+shortName, image)
+			},
+		})
+		drivers = append(drivers, framework.BenchmarkTestDriver{
+			TestName:      "SociFull" + shortName,
+			NumberOfTests: numberOfTests,
+			TestFunction: func(b *testing.B) {
+				benchmark.SociFullRun(ctx, b, "SociFull"+shortName, image)
+			},
+		})
 	}
 
 	benchmarks := framework.BenchmarkFramework{

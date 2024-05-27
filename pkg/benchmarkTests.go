@@ -310,11 +310,16 @@ func StargzFullRun(
 	b.StopTimer()
 }
 
+
 func CvmfsFullRun(
 	ctx context.Context,
 	b *testing.B,
+	testName string,
 	imageDescriptor ImageDescriptor,
 	cvmfsBinary string) {
+	testUUID := uuid.New().String()
+	ctx = log.WithLogger(ctx, log.G(ctx).WithField("test_name", testName))
+	ctx = log.WithLogger(ctx, log.G(ctx).WithField("uuid", testUUID))
 	containerdProcess, err := getContainerdProcess(ctx, cvmfsConfig)
 	if err != nil {
 		fatalf(b, "Failed to create containerd proc: %v\n", err)
@@ -327,25 +332,66 @@ func CvmfsFullRun(
 	defer cvmfsProcess.StopProcess()
 	cvmfsContainerdProc := CvmfsContainerdProcess{containerdProcess}
 	b.ResetTimer()
+	pullStart := time.Now()
+	log.G(ctx).WithField("benchmark", "Test").WithField("event", "Start").Infof("Start Test")
+	log.G(ctx).WithField("benchmark", "Pull").WithField("event", "Start").Infof("Start Pull Image")
 	image, err := cvmfsContainerdProc.CvmfsPullImageFromRegistry(ctx, imageDescriptor.ImageRef)
+	log.G(ctx).WithField("benchmark", "Pull").WithField("event", "Stop").Infof("Stop Pull Image")
+	pullDuration := time.Since(pullStart)
+	b.ReportMetric(float64(pullDuration.Milliseconds()), "pullDuration")
+	b.ReportMetric(0, "unpackDuration")
 	if err != nil {
 		fatalf(b, "%s", err)
 	}
+	log.G(ctx).WithField("benchmark", "CreateContainer").WithField("event", "Start").Infof("Start Create Container")
 	container, cleanupContainer, err := cvmfsContainerdProc.CreateContainer(ctx, imageDescriptor.ContainerOpts(image, containerd.WithSnapshotter("cvmfs"))...)
+	log.G(ctx).WithField("benchmark", "CreateContainer").WithField("event", "Stop").Infof("Stop Create Container")
 	if err != nil {
 		fatalf(b, "%s", err)
 	}
 	defer cleanupContainer()
-	taskDetails, cleanupTask, err := containerdProcess.CreateTask(ctx, container)
+	log.G(ctx).WithField("benchmark", "CreateTask").WithField("event", "Start").Infof("Start Create Task")
+	taskDetails, cleanupTask, err := cvmfsContainerdProc.CreateTask(ctx, container)
+	log.G(ctx).WithField("benchmark", "CreateTask").WithField("event", "Stop").Infof("Stop Create Task")
 	if err != nil {
 		fatalf(b, "%s", err)
 	}
 	defer cleanupTask()
-	cleanupRun, err := containerdProcess.RunContainerTaskForReadyLine(ctx, taskDetails, imageDescriptor.ReadyLine, imageDescriptor.Timeout())
+	log.G(ctx).WithField("benchmark", "RunTask").WithField("event", "Start").Infof("Start Run Task")
+	runLazyTaskStart := time.Now()
+	cleanupRun, err := cvmfsContainerdProc.RunContainerTaskForReadyLine(ctx, taskDetails, imageDescriptor.ReadyLine, imageDescriptor.Timeout())
+	lazyTaskDuration := time.Since(runLazyTaskStart)
+	log.G(ctx).WithField("benchmark", "RunTask").WithField("event", "Stop").Infof("Stop Run Task")
+	b.ReportMetric(float64(lazyTaskDuration.Milliseconds()), "lazyTaskDuration")
 	if err != nil {
 		fatalf(b, "%s", err)
 	}
-	defer cleanupRun()
+	// In order for host networking to work, we need to clean up the task so that any network resources are released before running the second container
+	// We don't want this cleanup time included in the benchmark, though.
+	b.StopTimer()
+	cleanupRun()
+	b.StartTimer()
+	containerSecondRun, cleanupContainerSecondRun, err := cvmfsContainerdProc.CreateContainer(ctx, imageDescriptor.ContainerOpts(image, containerd.WithSnapshotter("cvmfs"))...)
+	if err != nil {
+		fatalf(b, "%s", err)
+	}
+	defer cleanupContainerSecondRun()
+	taskDetailsSecondRun, cleanupTaskSecondRun, err := cvmfsContainerdProc.CreateTask(ctx, containerSecondRun)
+	if err != nil {
+		fatalf(b, "%s", err)
+	}
+	defer cleanupTaskSecondRun()
+	log.G(ctx).WithField("benchmark", "RunTaskTwice").WithField("event", "Start").Infof("Start Run Task Twice")
+	runLocalStart := time.Now()
+	cleanupRunSecond, err := cvmfsContainerdProc.RunContainerTaskForReadyLine(ctx, taskDetailsSecondRun, imageDescriptor.ReadyLine, imageDescriptor.Timeout())
+	localTaskStats := time.Since(runLocalStart)
+	log.G(ctx).WithField("benchmark", "RunTaskTwice").WithField("event", "Stop").Infof("Stop Run Task Twice")
+	b.ReportMetric(float64(localTaskStats.Milliseconds()), "localTaskStats")
+	if err != nil {
+		fatalf(b, "%s", err)
+	}
+	defer cleanupRunSecond()
+	log.G(ctx).WithField("benchmark", "Test").WithField("event", "Stop").Infof("Stop Test")
 	b.StopTimer()
 }
 
