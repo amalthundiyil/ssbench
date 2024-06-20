@@ -166,7 +166,7 @@ func (proc *ContainerdProcess) CreateTask(
 	container containerd.Container) (*TaskDetails, func(), error) {
 	stdoutPipeReader, stdoutPipeWriter := io.Pipe()
 	stderrPipeReader, stderrPipeWriter := io.Pipe()
-	cioCreator := cio.NewCreator(cio.WithStreams(os.Stdin, stdoutPipeWriter, stderrPipeWriter))
+	cioCreator := cio.BinaryIO("/usr/bin/python3", map[string]string{"-c": "\"print('Hello World')\""})
 	task, err := container.NewTask(ctx, cioCreator)
 	if err != nil {
 		return nil, nil, err

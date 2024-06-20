@@ -47,7 +47,6 @@ func main() {
 
 	flag.Parse()
 
-	var cvmfsBinary = "../bin/cvmfs-snapshotter-grpc"
 
 	if showCom {
 		commit, _ = benchmark.GetCommitHash()
@@ -82,27 +81,34 @@ func main() {
 	for _, image := range imageList {
 		image := image
 		shortName := image.ShortName
+		// drivers = append(drivers, framework.BenchmarkTestDriver{
+		// 	TestName:      "OverlayFSFull" + shortName,
+		// 	NumberOfTests: numberOfTests,
+		// 	TestFunction: func(b *testing.B) {
+		// 		benchmark.OverlayFSFullRun(ctx, b, "OverlayFSFull"+shortName, image)
+		// 	},
+		// })
 		drivers = append(drivers, framework.BenchmarkTestDriver{
 			TestName:      "CvmfsFull" + shortName,
 			NumberOfTests: numberOfTests,
 			TestFunction: func(b *testing.B) {
-				benchmark.CvmfsFullRun(ctx, b, "CvmfsFull"+shortName, image, cvmfsBinary)
+				benchmark.CvmfsFullRun(ctx, b, "CvmfsFull"+shortName, image)
 			},
 		})
-		drivers = append(drivers, framework.BenchmarkTestDriver{
-			TestName:      "OverlayFSFull" + shortName,
-			NumberOfTests: numberOfTests,
-			TestFunction: func(b *testing.B) {
-				benchmark.OverlayFSFullRun(ctx, b, "OverlayFSFull"+shortName, image)
-			},
-		})
-		drivers = append(drivers, framework.BenchmarkTestDriver{
-			TestName:      "SociFull" + shortName,
-			NumberOfTests: numberOfTests,
-			TestFunction: func(b *testing.B) {
-				benchmark.SociFullRun(ctx, b, "SociFull"+shortName, image)
-			},
-		})
+		// drivers = append(drivers, framework.BenchmarkTestDriver{
+		// 	TestName:      "SociFull" + shortName,
+		// 	NumberOfTests: numberOfTests,
+		// 	TestFunction: func(b *testing.B) {
+		// 		benchmark.SociFullRun(ctx, b, "SociFull"+shortName, image)
+		// 	},
+		// })
+		// drivers = append(drivers, framework.BenchmarkTestDriver{
+		// 	TestName:      "StargzFull" + shortName,
+		// 	NumberOfTests: numberOfTests,
+		// 	TestFunction: func(b *testing.B) {
+		// 		benchmark.StargzFullRun(ctx, b, "StargzFull"+shortName, image)
+		// 	},
+		// })
 	}
 
 	benchmarks := framework.BenchmarkFramework{

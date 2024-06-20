@@ -18,14 +18,11 @@ package framework
 
 import (
 	"context"
-	"io"
 
 	"github.com/containerd/containerd"
-	"github.com/containerd/containerd/reference"
 	"github.com/containerd/containerd/remotes"
 	"github.com/containerd/containerd/remotes/docker"
 	"github.com/containerd/containerd/remotes/docker/config"
-	dockercliconfig "github.com/docker/cli/cli/config"
 )
 
 func (proc *ContainerdProcess) PullImageFromRegistry(
@@ -42,30 +39,11 @@ func (proc *ContainerdProcess) PullImageFromRegistry(
 }
 
 func GetResolver(ctx context.Context, imageRef string) remotes.Resolver {
-
-	var username string
-	var secret string
-	refspec, err := reference.Parse(imageRef)
-	if err != nil {
-		panic("Failed to parse image ref")
+	var options = docker.ResolverOptions{
+		Hosts: config.ConfigureHosts(context.TODO(), config.HostOptions{
+			DefaultScheme: "http",
+		}),
+		Tracker: docker.NewInMemoryTracker(),
 	}
-	cf := dockercliconfig.LoadDefaultConfigFile(io.Discard)
-	if cf.ContainsAuth() {
-		if ac, err := cf.GetAuthConfig(refspec.Hostname()); err == nil {
-			username = ac.Username
-			secret = ac.Password
-		}
-	}
-
-	hostOptions := config.HostOptions{}
-	hostOptions.Credentials = func(host string) (string, string, error) {
-		return username, secret, nil
-	}
-	var PushTracker = docker.NewInMemoryTracker()
-	options := docker.ResolverOptions{
-		Tracker: PushTracker,
-	}
-	options.Hosts = config.ConfigureHosts(ctx, hostOptions)
-
 	return docker.NewResolver(options)
 }

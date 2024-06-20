@@ -118,7 +118,7 @@ func (proc *CvmfsContainerdProcess) CvmfsPullImageFromRegistry(
 		//nolint:staticcheck
 		containerd.WithSchema1Conversion, //lint:ignore SA1019
 		containerd.WithPullUnpack,
-		containerd.WithPullSnapshotter("cvmfs"),
+		containerd.WithPullSnapshotter("cvmfs-snapshotter"),
 		containerd.WithImageHandlerWrapper(ctdsnapshotters.AppendInfoHandlerWrapper(imageRef)),
 	}...)
 	if err != nil {
