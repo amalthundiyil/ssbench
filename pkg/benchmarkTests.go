@@ -368,11 +368,11 @@ func CvmfsFullRun(
 		fatalf(b, "Failed to create containerd proc: %v\n", err)
 	}
 	defer containerdProcess.StopProcess()
-	cvmfsProcess, err := getCvmfsProcess(cvmfsBinary)
-	if err != nil {
-		fatalf(b, "Failed to create cvmfs proc: %v\n", err)
-	}
-	defer cvmfsProcess.StopProcess()
+	// cvmfsProcess, err := getCvmfsProcess(cvmfsBinary)
+	// if err != nil {
+	// 	fatalf(b, "Failed to create cvmfs proc: %v\n", err)
+	// }
+	// defer cvmfsProcess.StopProcess()
 	cvmfsContainerdProc := CvmfsContainerdProcess{containerdProcess}
 	b.ResetTimer()
 	pullStart := time.Now()
@@ -387,22 +387,22 @@ func CvmfsFullRun(
 		fatalf(b, "%s", err)
 	}
 	log.G(ctx).WithField("benchmark", "CreateContainer").WithField("event", "Start").Infof("Start Create Container")
-	container, _, err := cvmfsContainerdProc.CreateContainer(ctx, imageDescriptor.ContainerOpts(image, containerd.WithSnapshotter("cvmfs-snapshotter"))...)
+	container, cleanupContainer, err := cvmfsContainerdProc.CreateContainer(ctx, imageDescriptor.ContainerOpts(image, containerd.WithSnapshotter("cvmfs-snapshotter"))...)
 	log.G(ctx).WithField("benchmark", "CreateContainer").WithField("event", "Stop").Infof("Stop Create Container")
 	if err != nil {
 		fatalf(b, "%s", err)
 	}
-	// defer cleanupContainer()
+	defer cleanupContainer()
 	log.G(ctx).WithField("benchmark", "CreateTask").WithField("event", "Start").Infof("Start Create Task")
-	taskDetails, _, err := cvmfsContainerdProc.CreateTask(ctx, container)
+	taskDetails, cleanupTask, err := cvmfsContainerdProc.CreateTask(ctx, container)
 	log.G(ctx).WithField("benchmark", "CreateTask").WithField("event", "Stop").Infof("Stop Create Task")
 	if err != nil {
 		fatalf(b, "%s", err)
 	}
-	// defer cleanupTask()
+	defer cleanupTask()
 	log.G(ctx).WithField("benchmark", "RunTask").WithField("event", "Start").Infof("Start Run Task")
 	runLazyTaskStart := time.Now()
-	_, err = cvmfsContainerdProc.RunContainerTaskForReadyLine(ctx, taskDetails, imageDescriptor.ReadyLine, imageDescriptor.Timeout())
+	cleanupRun, err := cvmfsContainerdProc.RunContainerTaskForReadyLine(ctx, taskDetails, imageDescriptor.ReadyLine, imageDescriptor.Timeout())
 	lazyTaskDuration := time.Since(runLazyTaskStart)
 	log.G(ctx).WithField("benchmark", "RunTask").WithField("event", "Stop").Infof("Stop Run Task")
 	b.ReportMetric(float64(lazyTaskDuration.Milliseconds()), "lazyTaskDuration")
@@ -412,7 +412,7 @@ func CvmfsFullRun(
 	// In order for host networking to work, we need to clean up the task so that any network resources are released before running the second container
 	// We don't want this cleanup time included in the benchmark, though.
 	b.StopTimer()
-	// cleanupRun()
+	cleanupRun()
 	// b.StartTimer()
 	// containerSecondRun, cleanupContainerSecondRun, err := cvmfsContainerdProc.CreateContainer(ctx, imageDescriptor.ContainerOpts(image, containerd.WithSnapshotter("cvmfs-snapshotter"))...)
 	// if err != nil {
@@ -466,7 +466,7 @@ func getStargzProcess(stargzBinary string) (*StargzProcess, error) {
 		outputDir)
 }
 
-func getCvmfsProcess(cvmfsBinary string) (*CvmfsProcess, error) {
+func GetCvmfsProcess(cvmfsBinary string) (*CvmfsProcess, error) {
 	return StartCvmfs(
 		cvmfsBinary,
 		cvmfsAddress,

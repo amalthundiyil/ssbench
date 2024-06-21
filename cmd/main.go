@@ -47,7 +47,6 @@ func main() {
 
 	flag.Parse()
 
-
 	if showCom {
 		commit, _ = benchmark.GetCommitHash()
 	} else {
@@ -116,5 +115,11 @@ func main() {
 		CommitID:  commit,
 		Drivers:   drivers,
 	}
+	cvmfsProcess, err := benchmark.GetCvmfsProcess("../bin/cvmfs_snapshotter")
+	if err != nil {
+		fmt.Printf("Failed to create cvmfs proc: %v\n", err)
+	}
+	defer cvmfsProcess.StopProcess()
+
 	benchmarks.Run(ctx)
 }

@@ -2,12 +2,28 @@
 
 set -xe
 
-sudo apt install git make fuse -y
-
 PROJECT_DIR="/home/ubuntu/ssbench"
 # PROJECT_DIR="/home/amal/work/ssbench"
-
 mkdir -p $PROJECT_DIR/bin
+
+sudo systemctl stop soci-snapshotter
+sudo systemctl stop stargz-snapshotter
+sudo systemctl stop cvmfs-snapshotter
+
+# install other requirements
+sudo apt install git make fuse -y
+
+# install cvmfs
+sudo apt install lsb-release
+if [ ! -f /tmp/cvmfs-release-latest_all.deb ]; then
+    wget https://ecsft.cern.ch/dist/cvmfs/cvmfs-release/cvmfs-release-latest_all.deb -O /tmp/cvmfs-release-latest_all.deb
+fi
+sudo dpkg -i /tmp/cvmfs-release-latest_all.deb
+sudo apt update
+sudo apt install -y cvmfs
+sudo cvmfs_config setup
+sudo sh -c "echo "CVMFS_HTTP_PROXY=DIRECT" > /etc/cvmfs/default.local"
+sudo cvmfs_config reload
 
 # go
 if [ ! -f /tmp/go1.22.0.linux-amd64.tar.gz ]; then
@@ -60,5 +76,5 @@ sudo systemctl start soci-snapshotter
 sudo systemctl start stargz-snapshotter
 sudo systemctl start cvmfs-snapshotter
 
-go build -o $PROJECT_DIR/bin/ssbench $PROJECT_DIR/cmd/main.go
+/usr/local/go/bin/go build -o $PROJECT_DIR/bin/ssbench $PROJECT_DIR/cmd/main.go
 
