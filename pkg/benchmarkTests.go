@@ -413,29 +413,29 @@ func CvmfsFullRun(
 	// We don't want this cleanup time included in the benchmark, though.
 	b.StopTimer()
 	cleanupRun()
-	// b.StartTimer()
-	// containerSecondRun, cleanupContainerSecondRun, err := cvmfsContainerdProc.CreateContainer(ctx, imageDescriptor.ContainerOpts(image, containerd.WithSnapshotter("cvmfs-snapshotter"))...)
-	// if err != nil {
-	// 	fatalf(b, "%s", err)
-	// }
-	// defer cleanupContainerSecondRun()
-	// taskDetailsSecondRun, cleanupTaskSecondRun, err := cvmfsContainerdProc.CreateTask(ctx, containerSecondRun)
-	// if err != nil {
-	// 	fatalf(b, "%s", err)
-	// }
-	// defer cleanupTaskSecondRun()
-	// log.G(ctx).WithField("benchmark", "RunTaskTwice").WithField("event", "Start").Infof("Start Run Task Twice")
-	// runLocalStart := time.Now()
-	// cleanupRunSecond, err := cvmfsContainerdProc.RunContainerTaskForReadyLine(ctx, taskDetailsSecondRun, imageDescriptor.ReadyLine, imageDescriptor.Timeout())
-	// localTaskStats := time.Since(runLocalStart)
-	// log.G(ctx).WithField("benchmark", "RunTaskTwice").WithField("event", "Stop").Infof("Stop Run Task Twice")
-	// b.ReportMetric(float64(localTaskStats.Milliseconds()), "localTaskStats")
-	// if err != nil {
-	// 	fatalf(b, "%s", err)
-	// }
-	// defer cleanupRunSecond()
-	// log.G(ctx).WithField("benchmark", "Test").WithField("event", "Stop").Infof("Stop Test")
-	// b.StopTimer()
+	b.StartTimer()
+	containerSecondRun, cleanupContainerSecondRun, err := cvmfsContainerdProc.CreateContainer(ctx, imageDescriptor.ContainerOpts(image, containerd.WithSnapshotter("cvmfs-snapshotter"))...)
+	if err != nil {
+		fatalf(b, "%s", err)
+	}
+	defer cleanupContainerSecondRun()
+	taskDetailsSecondRun, cleanupTaskSecondRun, err := cvmfsContainerdProc.CreateTask(ctx, containerSecondRun)
+	if err != nil {
+		fatalf(b, "%s", err)
+	}
+	defer cleanupTaskSecondRun()
+	log.G(ctx).WithField("benchmark", "RunTaskTwice").WithField("event", "Start").Infof("Start Run Task Twice")
+	runLocalStart := time.Now()
+	cleanupRunSecond, err := cvmfsContainerdProc.RunContainerTaskForReadyLine(ctx, taskDetailsSecondRun, imageDescriptor.ReadyLine, imageDescriptor.Timeout())
+	localTaskStats := time.Since(runLocalStart)
+	log.G(ctx).WithField("benchmark", "RunTaskTwice").WithField("event", "Stop").Infof("Stop Run Task Twice")
+	b.ReportMetric(float64(localTaskStats.Milliseconds()), "localTaskStats")
+	if err != nil {
+		fatalf(b, "%s", err)
+	}
+	defer cleanupRunSecond()
+	log.G(ctx).WithField("benchmark", "Test").WithField("event", "Stop").Infof("Stop Test")
+	b.StopTimer()
 }
 
 func getContainerdProcess(ctx context.Context, containerdConfig string) (*framework.ContainerdProcess, error) {

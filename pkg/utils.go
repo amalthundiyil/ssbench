@@ -134,8 +134,8 @@ func GetDefaultWorkloads() []ImageDescriptor {
 	return []ImageDescriptor{
 		{
 			ShortName:       "Python3.9",
-			ImageRef:        "localhost:5000/python:3.9",
-			SociIndexDigest: "sha256:7b09431ef0749bee7491ba28d1adbe6e6e9e008e9be65fe35eed0aca31a01c91",
+			ImageRef:        "public.ecr.aws/j5h7u4o8/python:3.9",
+			SociIndexDigest: "sha256:974c88873f74c89cc87c69904fae9ef9362e5aab9a555f1069e7814df2cfb681",
 			ReadyLine:       "Hello World",
 			Command:         "python3 -c \"print('Hello World')\"",
 		},

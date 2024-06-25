@@ -6,10 +6,6 @@ PROJECT_DIR="/home/ubuntu/ssbench"
 # PROJECT_DIR="/home/amal/work/ssbench"
 mkdir -p $PROJECT_DIR/bin
 
-sudo systemctl stop soci-snapshotter
-sudo systemctl stop stargz-snapshotter
-sudo systemctl stop cvmfs-snapshotter
-
 # install other requirements
 sudo apt install git make fuse -y
 
@@ -39,7 +35,9 @@ source ~/.bashrc
 if [ ! -f /tmp/nerdctl-full-1.7.6-linux-amd64.tar.gz ]; then
     wget https://github.com/containerd/nerdctl/releases/download/v1.7.6/nerdctl-full-1.7.6-linux-amd64.tar.gz -P /tmp
 fi
-tar Cxzvvf /usr/local /tmp/nerdctl-full-1.7.6-linux-amd64.tar.gz
+sudo tar Cxzvvf /usr/local /tmp/nerdctl-full-1.7.6-linux-amd64.tar.gz
+sudo mkdir -p /etc/containerd
+sudo cp $PROJECT_DIR/containerd_config.toml /etc/containerd/config.toml
 sudo systemctl enable --now containerd
 
 # soci
@@ -62,12 +60,11 @@ if [ ! -d /tmp/cvmfs ]; then
     git clone https://github.com/cvmfs/cvmfs /tmp/cvmfs
 fi
 cd /tmp/cvmfs/snapshotter
-make
+/usr/local/go/bin/go build -o out/cvmfs_snapshotter -ldflags '-X main.Version=2.11'                                                                                              
 cp /tmp/cvmfs/snapshotter/out/cvmfs_snapshotter $PROJECT_DIR/bin/cvmfs_snapshotter
 cp /tmp/cvmfs/snapshotter/out/cvmfs_snapshotter /usr/local/bin/cvmfs_snapshotter
 wget https://raw.githubusercontent.com/cvmfs/cvmfs/42e04529dc8eccb52bf62b27b220aa54b660681a/snapshotter/script/config/etc/systemd/system/cvmfs-snapshotter.service -O /usr/local/lib/systemd/system/cvmfs-snapshotter.service
 mkdir -p /etc/containerd-cvmfs-grpc && touch /etc/containerd-cvmfs-grpc/config.toml
-
 
 cd $PROJECT_DIR 
 
