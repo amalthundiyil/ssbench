@@ -2,8 +2,10 @@
 
 set -xe
 
-PROJECT_DIR="/home/ubuntu/ssbench"
-# PROJECT_DIR="/home/amal/work/ssbench"
+if [ "x$PROJECT_DIR" = "x" ]; then 
+    PROJECT_DIR="/home/ubuntu/ssbench"
+fi
+
 mkdir -p $PROJECT_DIR/bin
 
 # install other requirements

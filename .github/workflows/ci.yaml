@@ -14,7 +14,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup
-        run: sudo bash ${{github.workspace}}/scripts/install.sh
+        run: |
+          echo "PROJECT_DIR=${{github.workspace}}" >> $GITHUB_ENV
+          sudo bash ${{github.workspace}}/scripts/install.sh
       - name: Build
         run: go build -o bin/ssbench ./cmd/main.go
       - name: Run
