@@ -5,9 +5,9 @@ ssbench (SnapShotter BENCHmark) is a benchmarking tool for [stargz](https://gith
 ## Usage
 
 ```
-go build -o bin/sshbench ./cmd/main.go
+go build -o bin/ssbench ./cmd/main.go
 cd bin
-sudo ./sshbench
+sudo ./ssbench
 ```
 
 ## Thanks

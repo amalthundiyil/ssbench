@@ -1,10 +1,10 @@
 #!/bin/bash
 
-set -xe
+set -x
 
 IMAGE="python:3.9"
 # IMAGE="gcc:11.2.0"
-REGISTRY="public.ecr.aws/j5h7u4o8"
+REGISTRY="localhost:5000"
 
 # sudo soci index rm `sudo soci index ls -q`
 sudo nerdctl rm -f `sudo nerdctl ps -aq`
@@ -20,7 +20,7 @@ sudo nerdctl image tag ghcr.io/stargz-containers/$IMAGE-esgz  $REGISTRY/$IMAGE-e
 sudo nerdctl image rm registry.hub.docker.com/library/$IMAGE
 sudo nerdctl image rm ghcr.io/stargz-containers/$IMAGE-esgz
 
-sudo nerdctl push --snapshotter soci $REGISTRY/$IMAGE
+sudo nerdctl --insecure-registry push --snapshotter soci $REGISTRY/$IMAGE
 sudo nerdctl push $REGISTRY/$IMAGE-esgz
 
 sudo nerdctl image rm $REGISTRY/$IMAGE

@@ -76,6 +76,8 @@ func main() {
 	ctx, cancelCtx := framework.GetTestContext(logFile)
 	defer cancelCtx()
 
+	benchmark.WriteDefaultConfig()
+
 	var drivers []framework.BenchmarkTestDriver
 	for _, image := range imageList {
 		image := image

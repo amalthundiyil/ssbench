@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"time"
@@ -134,8 +135,8 @@ func GetDefaultWorkloads() []ImageDescriptor {
 	return []ImageDescriptor{
 		{
 			ShortName:       "Python3.9",
-			ImageRef:        "public.ecr.aws/j5h7u4o8/python:3.9",
-			SociIndexDigest: "sha256:974c88873f74c89cc87c69904fae9ef9362e5aab9a555f1069e7814df2cfb681",
+			ImageRef:        "localhost:5000/python:3.9",
+			SociIndexDigest: "sha256:e0dc362add36bcd9158afe4943da72f5726688ab9d68b3ab570fe3dc113ad758",
 			ReadyLine:       "Hello World",
 			Command:         "python3 -c \"print('Hello World')\"",
 		},
@@ -187,5 +188,38 @@ func GetDefaultWorkloads() []ImageDescriptor {
 		// 	SociIndexDigest: "sha256:da171fda5f4ccf79f453fc0c5e1414642521c2e189f377809ca592af9458287a",
 		// 	ReadyLine:       "Ready to accept connections",
 		// },
+	}
+}
+
+func WriteDefaultConfig() {
+	tomlContent := `
+version = 2
+
+[plugins."io.containerd.grpc.v1.cri".containerd]
+    disable_snapshot_annotations = false
+  
+[proxy_plugins]
+    [proxy_plugins.cvmfs-snapshotter]
+        type = "snapshot"
+        address = "/tmp/containerd-cvmfs-grpc/containerd-cvmfs-grpc.sock"
+    [proxy_plugins.stargz]
+        type = "snapshot"
+        address = "/tmp/containerd-stargz-grpc/containerd-stargz-grpc.sock"
+    [proxy_plugins.soci]
+        type = "snapshot"
+        address = "/tmp/containerd-soci-grpc/containerd-soci-grpc.sock"
+`
+
+	filePath := "/tmp/containerd_config.toml"
+
+	if _, err := os.Stat(filePath); err == nil {
+		log.Printf("File %s already exists and will be overwritten", filePath)
+	} else if !os.IsNotExist(err) {
+		log.Fatalf("Error checking if file exists: %v", err)
+	}
+
+	err := os.WriteFile(filePath, []byte(tomlContent), 0644)
+	if err != nil {
+		log.Fatalf("Error writing to file: %v", err)
 	}
 }

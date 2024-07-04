@@ -43,11 +43,25 @@ sudo cp $PROJECT_DIR/containerd_config.toml /etc/containerd/config.toml
 sudo systemctl enable --now containerd
 
 # soci
-if [ ! -f /tmp/soci-snapshotter-0.6.1-linux-amd64.tar.gz ]; then
-    wget https://github.com/awslabs/soci-snapshotter/releases/download/v0.6.1/soci-snapshotter-0.6.1-linux-amd64.tar.gz -P /tmp
-fi 
-sudo tar -C /usr/local/bin -xvf /tmp/soci-snapshotter-0.6.1-linux-amd64.tar.gz soci soci-snapshotter-grpc
-sudo tar -C $PROJECT_DIR/bin -xvf /tmp/soci-snapshotter-0.6.1-linux-amd64.tar.gz soci soci-snapshotter-grpc
+
+## soci build deps
+sudo apt install zlib1g-dev gcc fuse unzip -y
+wget -c https://github.com/google/flatbuffers/releases/download/v23.3.3/Linux.flatc.binary.g++-10.zip -P /tmp
+sudo unzip -o /tmp/Linux.flatc.binary.g++-10.zip -d /usr/local
+
+if [ ! -d /tmp/soci-snapshotter ]; then
+    git clone https://github.com/awslabs/soci-snapshotter /tmp/soci-snapshotter
+fi
+cd /tmp/soci-snapshotter
+git checkout 2f82461d214d2bc30843af32c52b7883b304db60
+make
+sudo cp /tmp/soci-snapshotter/out/* /usr/local/bin
+sudo cp /tmp/soci-snapshotter/out/* $PROJECT_DIR/bin
+# if [ ! -f /tmp/soci-snapshotter-0.6.1-linux-amd64.tar.gz ]; then
+#     wget https://github.com/awslabs/soci-snapshotter/releases/download/v0.6.1/soci-snapshotter-0.6.1-linux-amd64.tar.gz -P /tmp
+# fi 
+# sudo tar -C /usr/local/bin -xvf /tmp/soci-snapshotter-0.6.1-linux-amd64.tar.gz soci soci-snapshotter-grpc
+# sudo tar -C $PROJECT_DIR/bin -xvf /tmp/soci-snapshotter-0.6.1-linux-amd64.tar.gz soci soci-snapshotter-grpc
 wget https://raw.githubusercontent.com/awslabs/soci-snapshotter/main/soci-snapshotter.service -O /usr/local/lib/systemd/system/soci-snapshotter.service
 
 # stargz
