@@ -163,10 +163,10 @@ type TaskDetails struct {
 
 func (proc *ContainerdProcess) CreateTask(
 	ctx context.Context,
-	container containerd.Container) (*TaskDetails, func(), error) {
+	container containerd.Container, command string) (*TaskDetails, func(), error) {
 	stdoutPipeReader, stdoutPipeWriter := io.Pipe()
 	stderrPipeReader, stderrPipeWriter := io.Pipe()
-	cioCreator := cio.BinaryIO("/usr/bin/python3", map[string]string{"-c": "\"print('Hello World')\""})
+	cioCreator := cio.BinaryIO("/usr/bin/sh", map[string]string{"-c": command})
 	task, err := container.NewTask(ctx, cioCreator)
 	if err != nil {
 		return nil, nil, err

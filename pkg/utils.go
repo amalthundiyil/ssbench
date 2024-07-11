@@ -27,6 +27,7 @@ import (
 
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/contrib/nvidia"
+	"github.com/containerd/containerd/mount"
 	"github.com/containerd/containerd/oci"
 	runtimespec "github.com/opencontainers/runtime-spec/specs-go"
 )
@@ -41,6 +42,7 @@ type ImageDescriptor struct {
 	Command         string       `json:"command"`
 	TimeoutSec      int64        `json:"timeout_sec"`
 	ImageOptions    ImageOptions `json:"options"`
+	Mount           mount.Mount  `json:"mount"`
 }
 
 func (i *ImageDescriptor) Timeout() time.Duration {
@@ -134,60 +136,27 @@ func GetCommitHash() (string, error) {
 func GetDefaultWorkloads() []ImageDescriptor {
 	return []ImageDescriptor{
 		{
-			ShortName:       "Python3.9",
+			ShortName:       "python3.9",
 			ImageRef:        "localhost:5000/python:3.9",
 			SociIndexDigest: "sha256:e0dc362add36bcd9158afe4943da72f5726688ab9d68b3ab570fe3dc113ad758",
 			ReadyLine:       "Hello World",
 			Command:         "python3 -c \"print('Hello World')\"",
 		},
-		// {
-		// 	ShortName:       "ECR-public-ffmpeg",
-		// 	ImageRef:        "public.ecr.aws/soci-workshop-examples/ffmpeg:latest",
-		// 	SociIndexDigest: "sha256:ef63578971ebd8fc700c74c96f81dafab4f3875e9117ef3c5eb7446e169d91cb",
-		// 	ReadyLine:       "Hello World",
-		// },
-		// {
-		// 	ShortName:       "ECR-public-tensorflow",
-		// 	ImageRef:        "public.ecr.aws/soci-workshop-examples/tensorflow:latest",
-		// 	SociIndexDigest: "sha256:27546e0267465279e40a8c8ebc8d34836dd5513c6e7019257855c9e0f04a9f34",
-		// 	ReadyLine:       "Hello World with TensorFlow!",
-		// },
-		// {
-		// 	ShortName:       "ECR-public-tensorflow_gpu",
-		// 	ImageRef:        "public.ecr.aws/soci-workshop-examples/tensorflow_gpu:latest",
-		// 	SociIndexDigest: "sha256:a40b70bc941216cbb29623e98970dfc84e9640666a8b9043564ca79f6d5cc137",
-		// 	ReadyLine:       "Hello World with TensorFlow!",
-		// },
-		// {
-		// 	ShortName:       "ECR-public-node",
-		// 	ImageRef:        "public.ecr.aws/soci-workshop-examples/node:latest",
-		// 	SociIndexDigest: "sha256:544d42d3447fe7833c2e798b8a342f5102022188e814de0aa6ce980e76c62894",
-		// 	ReadyLine:       "Server ready",
-		// },
-		// {
-		// 	ShortName:       "ECR-public-busybox",
-		// 	ImageRef:        "public.ecr.aws/soci-workshop-examples/busybox:latest",
-		// 	SociIndexDigest: "sha256:deaaf67bb4baa293dadcfbeb1f511c181f89a05a042ee92dd2e43e7b7295b1c0",
-		// 	ReadyLine:       "Hello World",
-		// },
-		// {
-		// 	ShortName:       "ECR-public-mongo",
-		// 	ImageRef:        "public.ecr.aws/soci-workshop-examples/mongo:latest",
-		// 	SociIndexDigest: "sha256:ecdd6dcc917d09ec7673288e8ba83270542b71959db2ac731fbeb42aa0b038e0",
-		// 	ReadyLine:       "Waiting for connections",
-		// },
-		// {
-		// 	ShortName:       "ECR-public-rabbitmq",
-		// 	ImageRef:        "public.ecr.aws/soci-workshop-examples/rabbitmq:latest",
-		// 	SociIndexDigest: "sha256:3882f9609c0c2da044173710f3905f4bc6c09228f2a5b5a0a5fdce2537677c17",
-		// 	ReadyLine:       "Server startup complete",
-		// },
-		// {
-		// 	ShortName:       "ECR-public-redis",
-		// 	ImageRef:        "public.ecr.aws/soci-workshop-examples/redis:latest",
-		// 	SociIndexDigest: "sha256:da171fda5f4ccf79f453fc0c5e1414642521c2e189f377809ca592af9458287a",
-		// 	ReadyLine:       "Ready to accept connections",
-		// },
+		{
+			ShortName:       "gcc11.2.0",
+			ImageRef:        "localhost:5000/gcc:11.2.0",
+			SociIndexDigest: "sha256:3e8e261a6ab60fb93afaf75b3c5cc4455fa147ef7e779eb8509d18bf051fd0e0",
+			ReadyLine:       "Hello World",
+			Command:         "echo '#include <stdio.h>\nint main() { printf(\"Hello World\\n\"); return 0; }' > /tmp/main.c && gcc -o /tmp/a.out /tmp/main.c && /tmp/a.out",
+		},
+		{
+			ShortName:       "cms-higgs-4l-full",
+			ImageRef:        "localhost:5000/cms-higgs-4l-full:latest",
+			SociIndexDigest: "sha256:3e8e261a6ab60fb93afaf75b3c5cc4455fa147ef7e779eb8509d18bf051fd0e0",
+			ReadyLine:       "Hello World",
+			Command:         "export CMS_INPUT_FILES=file:///tmp/0431F9FA-6202-E311-8B98-002481E1501E.root && time /opt/cms/entrypoint.sh cmsRun /configs/demoanalyzer_cfg_level4MC.py",
+			Mount:           mount.Mount{Type: "bind", Source: "/tmp/0431F9FA-6202-E311-8B98-002481E1501E.root", Target: "/tmp/0431F9FA-6202-E311-8B98-002481E1501E.root"},
+		},
 	}
 }
 

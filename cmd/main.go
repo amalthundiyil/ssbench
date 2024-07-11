@@ -89,13 +89,13 @@ func main() {
 				benchmark.OverlayFSFullRun(ctx, b, "OverlayFSFull"+shortName, image)
 			},
 		})
-		drivers = append(drivers, framework.BenchmarkTestDriver{
-			TestName:      "CvmfsFull" + shortName,
-			NumberOfTests: numberOfTests,
-			TestFunction: func(b *testing.B) {
-				benchmark.CvmfsFullRun(ctx, b, "CvmfsFull"+shortName, image)
-			},
-		})
+		// drivers = append(drivers, framework.BenchmarkTestDriver{
+		// 	TestName:      "CvmfsFull" + shortName,
+		// 	NumberOfTests: numberOfTests,
+		// 	TestFunction: func(b *testing.B) {
+		// 		benchmark.CvmfsFullRun(ctx, b, "CvmfsFull"+shortName, image)
+		// 	},
+		// })
 		drivers = append(drivers, framework.BenchmarkTestDriver{
 			TestName:      "SociFull" + shortName,
 			NumberOfTests: numberOfTests,

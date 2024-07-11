@@ -3,7 +3,7 @@
 set -xe
 
 if [ "x$PROJECT_DIR" = "x" ]; then 
-    PROJECT_DIR="/home/ubuntu/ssbench"
+    PROJECT_DIR="/home/vagrant/ssbench"
 fi
 
 mkdir -p $PROJECT_DIR/bin
@@ -12,7 +12,7 @@ mkdir -p $PROJECT_DIR/bin
 sudo apt install git make fuse -y
 
 # install cvmfs
-sudo apt install lsb-release
+sudo apt install lsb-release -y
 if [ ! -f /tmp/cvmfs-release-latest_all.deb ]; then
     wget https://ecsft.cern.ch/dist/cvmfs/cvmfs-release/cvmfs-release-latest_all.deb -O /tmp/cvmfs-release-latest_all.deb
 fi
@@ -21,6 +21,7 @@ sudo apt update
 sudo apt install -y cvmfs
 sudo cvmfs_config setup
 sudo sh -c "echo "CVMFS_HTTP_PROXY=DIRECT" > /etc/cvmfs/default.local"
+sudo sh -c "echo "CVMFS_DEBUGLOG=/tmp/cvmfs.log" >> /etc/cvmfs/default.local"
 sudo cvmfs_config reload
 
 # go
@@ -45,7 +46,7 @@ sudo systemctl enable --now containerd
 # soci
 
 ## soci build deps
-sudo apt install zlib1g-dev gcc fuse unzip -y
+sudo apt install zlib1g-dev gcc fuse unzip docker.io -y
 wget -c https://github.com/google/flatbuffers/releases/download/v23.3.3/Linux.flatc.binary.g++-10.zip -P /tmp
 sudo unzip -o /tmp/Linux.flatc.binary.g++-10.zip -d /usr/local
 
@@ -54,7 +55,9 @@ if [ ! -d /tmp/soci-snapshotter ]; then
 fi
 cd /tmp/soci-snapshotter
 git checkout 2f82461d214d2bc30843af32c52b7883b304db60
-make
+### Instead of sudo make
+cd cmd/ && GO111MODULE=auto sudo /usr/local/go/bin/go build -o /tmp/soci-snapshotter/out/soci-snapshotter-grpc  -ldflags '-X github.com/awslabs/soci-snapshotter/version.Version=2f82461 -X github.com/awslabs/soci-snapshotter/version.Revision=2f82461d214d2bc30843af32c52b7883b304db60  -s -w '  ./soci-snapshotter-grpc
+GO111MODULE=auto sudo /usr/local/go/bin/go build -o /tmp/soci-snapshotter/out/soci  -ldflags '-X github.com/awslabs/soci-snapshotter/version.Version=2f82461 -X github.com/awslabs/soci-snapshotter/version.Revision=2f82461d214d2bc30843af32c52b7883b304db60  -s -w '  ./soci
 sudo cp /tmp/soci-snapshotter/out/* /usr/local/bin
 sudo cp /tmp/soci-snapshotter/out/* $PROJECT_DIR/bin
 # if [ ! -f /tmp/soci-snapshotter-0.6.1-linux-amd64.tar.gz ]; then

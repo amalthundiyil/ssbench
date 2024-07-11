@@ -143,7 +143,7 @@ func SociFullRun(
 	}
 	defer cleanupContainer()
 	log.G(ctx).WithField("benchmark", "CreateTask").WithField("event", "Start").Infof("Start Create Task")
-	taskDetails, cleanupTask, err := sociContainerdProc.CreateTask(ctx, container)
+	taskDetails, cleanupTask, err := sociContainerdProc.CreateTask(ctx, container, imageDescriptor.Command)
 	log.G(ctx).WithField("benchmark", "CreateTask").WithField("event", "Stop").Infof("Stop Create Task")
 	if err != nil {
 		fatalf(b, "%s", err)
@@ -166,7 +166,7 @@ func SociFullRun(
 		fatalf(b, "%s", err)
 	}
 	defer cleanupContainerSecondRun()
-	taskDetailsSecondRun, cleanupTaskSecondRun, err := sociContainerdProc.CreateTask(ctx, containerSecondRun)
+	taskDetailsSecondRun, cleanupTaskSecondRun, err := sociContainerdProc.CreateTask(ctx, containerSecondRun, imageDescriptor.Command)
 	if err != nil {
 		fatalf(b, "%s", err)
 	}
@@ -226,7 +226,7 @@ func OverlayFSFullRun(
 	}
 	defer cleanupContainer()
 	log.G(ctx).WithField("benchmark", "CreateTask").WithField("event", "Start").Infof("Start Create Task")
-	taskDetails, cleanupTask, err := containerdProcess.CreateTask(ctx, container)
+	taskDetails, cleanupTask, err := containerdProcess.CreateTask(ctx, container, imageDescriptor.Command)
 	log.G(ctx).WithField("benchmark", "CreateTask").WithField("event", "Stop").Infof("Stop Create Task")
 	if err != nil {
 		fatalf(b, "%s", err)
@@ -251,7 +251,7 @@ func OverlayFSFullRun(
 		fatalf(b, "%s", err)
 	}
 	defer cleanupContainerSecondRun()
-	taskDetailsSecondRun, cleanupTaskSecondRun, err := containerdProcess.CreateTask(ctx, containerSecondRun)
+	taskDetailsSecondRun, cleanupTaskSecondRun, err := containerdProcess.CreateTask(ctx, containerSecondRun, imageDescriptor.Command)
 	if err != nil {
 		fatalf(b, "%s", err)
 	}
@@ -310,7 +310,7 @@ func StargzFullRun(
 	}
 	defer cleanupContainer()
 	log.G(ctx).WithField("benchmark", "CreateTask").WithField("event", "Start").Infof("Start Create Task")
-	taskDetails, cleanupTask, err := stargzContainerdProc.CreateTask(ctx, container)
+	taskDetails, cleanupTask, err := stargzContainerdProc.CreateTask(ctx, container, imageDescriptor.Command)
 	log.G(ctx).WithField("benchmark", "CreateTask").WithField("event", "Stop").Infof("Stop Create Task")
 	if err != nil {
 		fatalf(b, "%s", err)
@@ -335,7 +335,7 @@ func StargzFullRun(
 		fatalf(b, "%s", err)
 	}
 	defer cleanupContainerSecondRun()
-	taskDetailsSecondRun, cleanupTaskSecondRun, err := stargzContainerdProc.CreateTask(ctx, containerSecondRun)
+	taskDetailsSecondRun, cleanupTaskSecondRun, err := stargzContainerdProc.CreateTask(ctx, containerSecondRun, imageDescriptor.Command)
 	if err != nil {
 		fatalf(b, "%s", err)
 	}
@@ -394,7 +394,7 @@ func CvmfsFullRun(
 	}
 	defer cleanupContainer()
 	log.G(ctx).WithField("benchmark", "CreateTask").WithField("event", "Start").Infof("Start Create Task")
-	taskDetails, cleanupTask, err := cvmfsContainerdProc.CreateTask(ctx, container)
+	taskDetails, cleanupTask, err := cvmfsContainerdProc.CreateTask(ctx, container, imageDescriptor.Command)
 	log.G(ctx).WithField("benchmark", "CreateTask").WithField("event", "Stop").Infof("Stop Create Task")
 	if err != nil {
 		fatalf(b, "%s", err)
@@ -419,7 +419,7 @@ func CvmfsFullRun(
 		fatalf(b, "%s", err)
 	}
 	defer cleanupContainerSecondRun()
-	taskDetailsSecondRun, cleanupTaskSecondRun, err := cvmfsContainerdProc.CreateTask(ctx, containerSecondRun)
+	taskDetailsSecondRun, cleanupTaskSecondRun, err := cvmfsContainerdProc.CreateTask(ctx, containerSecondRun, imageDescriptor.Command)
 	if err != nil {
 		fatalf(b, "%s", err)
 	}

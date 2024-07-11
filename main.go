@@ -34,14 +34,14 @@ func main() {
 		}
 	}
 
-	_, err = client.Pull(context.TODO(), ref,
+	image, err := client.Pull(context.TODO(), ref,
 		containerd.WithResolver(docker.NewResolver(options)),
-		containerd.WithPullSnapshotter("soci"),
 		containerd.WithPullUnpack,
 		containerd.WithImageHandlerWrapper(source.AppendDefaultLabelsHandlerWrapper(sociIndexDigest, snapshotters.AppendInfoHandlerWrapper(ref))))
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+
 	fmt.Println("Success")
 }
