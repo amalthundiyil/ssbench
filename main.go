@@ -34,7 +34,7 @@ func main() {
 		}
 	}
 
-	image, err := client.Pull(context.TODO(), ref,
+	_, err = client.Pull(context.TODO(), ref,
 		containerd.WithResolver(docker.NewResolver(options)),
 		containerd.WithPullUnpack,
 		containerd.WithImageHandlerWrapper(source.AppendDefaultLabelsHandlerWrapper(sociIndexDigest, snapshotters.AppendInfoHandlerWrapper(ref))))

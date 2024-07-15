@@ -136,25 +136,25 @@ func GetCommitHash() (string, error) {
 func GetDefaultWorkloads() []ImageDescriptor {
 	return []ImageDescriptor{
 		{
-			ShortName:       "python3.9",
+			ShortName:       "Python3.9",
 			ImageRef:        "localhost:5000/python:3.9",
-			SociIndexDigest: "sha256:e0dc362add36bcd9158afe4943da72f5726688ab9d68b3ab570fe3dc113ad758",
+			SociIndexDigest: "sha256:05d4b7931cbef9792f3058e51b40f5b0b16bfdd9e5ebdc4857a1ffa135329865",
 			ReadyLine:       "Hello World",
 			Command:         "python3 -c \"print('Hello World')\"",
 		},
 		{
-			ShortName:       "gcc11.2.0",
+			ShortName:       "Gcc11.2.0",
 			ImageRef:        "localhost:5000/gcc:11.2.0",
 			SociIndexDigest: "sha256:3e8e261a6ab60fb93afaf75b3c5cc4455fa147ef7e779eb8509d18bf051fd0e0",
 			ReadyLine:       "Hello World",
 			Command:         "echo '#include <stdio.h>\nint main() { printf(\"Hello World\\n\"); return 0; }' > /tmp/main.c && gcc -o /tmp/a.out /tmp/main.c && /tmp/a.out",
 		},
 		{
-			ShortName:       "cms-higgs-4l-full",
+			ShortName:       "Cms-higgs-4l-full",
 			ImageRef:        "localhost:5000/cms-higgs-4l-full:latest",
-			SociIndexDigest: "sha256:3e8e261a6ab60fb93afaf75b3c5cc4455fa147ef7e779eb8509d18bf051fd0e0",
-			ReadyLine:       "Hello World",
-			Command:         "export CMS_INPUT_FILES=file:///tmp/0431F9FA-6202-E311-8B98-002481E1501E.root && time /opt/cms/entrypoint.sh cmsRun /configs/demoanalyzer_cfg_level4MC.py",
+			SociIndexDigest: "sha256:7061ecf4a6b00812dad0fe9b0d49f7c7db59974d23912e5f448de5990b42b0f0",
+			ReadyLine:       "Report end",
+			Command:         "export CMS_INPUT_FILES=file:///tmp/0431F9FA-6202-E311-8B98-002481E1501E.root && /opt/cms/entrypoint.sh cmsRun /configs/demoanalyzer_cfg_level4MC.py",
 			Mount:           mount.Mount{Type: "bind", Source: "/tmp/0431F9FA-6202-E311-8B98-002481E1501E.root", Target: "/tmp/0431F9FA-6202-E311-8B98-002481E1501E.root"},
 		},
 	}

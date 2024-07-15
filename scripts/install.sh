@@ -2,7 +2,7 @@
 
 set -xe
 
-if [ "x$PROJECT_DIR" = "x" ]; then 
+if [ "$PROJECT_DIR" = "" ]; then 
     PROJECT_DIR="/home/vagrant/ssbench"
 fi
 
