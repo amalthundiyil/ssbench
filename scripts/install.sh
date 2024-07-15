@@ -6,7 +6,7 @@ if [ "$PROJECT_DIR" = "" ]; then
     PROJECT_DIR="/home/vagrant/ssbench"
 fi
 
-mkdir -p $PROJECT_DIR/bin
+sudo mkdir -p $PROJECT_DIR/bin
 
 # install other requirements
 sudo apt install git make fuse -y
@@ -26,9 +26,9 @@ sudo cvmfs_config reload
 
 # go
 if [ ! -f /tmp/go1.22.0.linux-amd64.tar.gz ]; then
-    wget https://go.dev/dl/go1.22.0.linux-amd64.tar.gz -P /tmp
+    sudo wget https://go.dev/dl/go1.22.0.linux-amd64.tar.gz -P /tmp
 fi
-tar -C /usr/local -xvf /tmp/go1.22.0.linux-amd64.tar.gz
+sudo tar -C /usr/local -xvf /tmp/go1.22.0.linux-amd64.tar.gz
 
 echo "export GOPATH=$HOME/go" >> ~/.bashrc
 echo "export PATH=\$PATH:/usr/local/go/bin:\$GOPATH/bin" >> ~/.bashrc

@@ -10,15 +10,13 @@ env:
 jobs:
   benchmark:
     runs-on: ubuntu-20.04
-    env: 
-      PROJECT_DIR: ${{github.workspace}}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup
-        run: sudo bash ${{github.workspace}}/scripts/install.sh
-      - name: Build
-        run: go build -o bin/ssbench ./cmd/main.go
+        run: sudo sh -c "PROJECT_DIR=$PROJECT_DIR bash ${{ github.workspace }}/scripts/install.sh"
+        env: 
+          PROJECT_DIR: ${{ github.workspace }}
       - name: Run
         run: cd ${{github.workspace}}/bin && sudo ./ssbench
       - name: Upload results
