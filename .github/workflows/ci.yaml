@@ -10,15 +10,17 @@ env:
 jobs:
   benchmark:
     runs-on: ubuntu-20.04
-    env: 
-      PROJECT_DIR: ${{github.workspace}}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup
-        run: sudo bash ${{github.workspace}}/scripts/install.sh
-      - name: Build
-        run: go build -o bin/ssbench ./cmd/main.go
+      - name: Install dependencies
+        run: sudo sh -c "PROJECT_DIR=$PROJECT_DIR bash ${{ github.workspace }}/scripts/install.sh"
+        env:
+          PROJECT_DIR: ${{ github.workspace }}
+      - name: Setup registry
+        run: sudo sh -c "PROJECT_DIR=$PROJECT_DIR bash ${{ github.workspace }}/scripts/setup.sh"
+        env:
+          PROJECT_DIR: ${{ github.workspace }}
       - name: Run
         run: cd ${{github.workspace}}/bin && sudo ./ssbench
       - name: Upload results
@@ -38,20 +40,18 @@ jobs:
         with:
           name: benchmark-result-artifact
           path: ${{github.workspace}}
-      - name: Make temporary folder
-        run: mkdir ${{github.workspace}}/current
       - name: Change permission of visualization-data-converter.sh
         run: chmod +x ${{github.workspace}}/scripts/visualization-data-converter.sh
       - name: Convert benchmark result to visualization data
-        run: ${{github.workspace}}/scripts/visualization-data-converter.sh ${{github.workspace}}/results.json ${{github.workspace}}/current
+        run: ${{github.workspace}}/scripts/visualization-data-converter.sh ${{github.workspace}}/results.json ${{github.workspace}}/output
       - name: Build matrix of filepaths
         id: set-matrix
-        run: echo "files=$(find ${{github.workspace}}/current -type f -name '*.json' -printf '%p\n' | jq -R . | jq -cs .)" >> $GITHUB_OUTPUT
+        run: echo "files=$(find ${{github.workspace}}/output -type f -name '*.json' -printf '%p\n' | jq -R . | jq -cs .)" >> $GITHUB_OUTPUT
       - name: Upload visualization files as github artifacts
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-gh-pages-artifact
-          path: ${{github.workspace}}/current
+          path: ${{github.workspace}}/output
     outputs:
       matrix: ${{ steps.set-matrix.outputs.files }}
 
@@ -66,14 +66,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Create current folder
-        run: mkdir ${{github.workspace}}/current
+      - name: Create output folder
+        run: mkdir ${{github.workspace}}/output
 
       - name: Download latest benchmark visualization files
         uses: actions/download-artifact@v4
         with:
           name: benchmark-gh-pages-artifact
-          path: ${{github.workspace}}/current
+          path: ${{github.workspace}}/output
 
       - name: Extract file names
         id: get_filename
@@ -87,9 +87,9 @@ jobs:
       - name: Run benchmark action
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: Soci Benchmark
+          name: Benchmark
           tool: "customSmallerIsBetter"
-          benchmark-data-dir-path: "dev/benchmarks/performanceTest/${{ steps.get_filename.outputs.filename }}"
+          benchmark-data-dir-path: "output/${{ steps.get_filename.outputs.filename }}"
           output-file-path: ${{ matrix.file }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
