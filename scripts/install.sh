@@ -9,6 +9,7 @@ fi
 sudo mkdir -p $PROJECT_DIR/bin
 
 # install other requirements
+sudo apt update
 sudo apt install git make fuse -y
 
 # install cvmfs

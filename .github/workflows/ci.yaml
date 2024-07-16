@@ -8,8 +8,24 @@ env:
   GO_VERSION: "1.22.0"
 
 jobs:
+  free-disk-space:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Free Disk Space (Ubuntu)
+      uses: jlumbroso/free-disk-space@main
+      with:
+        tool-cache: false
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
+
   benchmark:
     runs-on: ubuntu-20.04
+    needs: free-disk-space
     steps:
       - name: Checkout
         uses: actions/checkout@v4
