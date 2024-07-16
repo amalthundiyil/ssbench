@@ -149,14 +149,14 @@ func GetDefaultWorkloads() []ImageDescriptor {
 			ReadyLine:       "Hello World",
 			Command:         "echo '#include <stdio.h>\nint main() { printf(\"Hello World\\n\"); return 0; }' > /tmp/main.c && gcc -o /tmp/a.out /tmp/main.c && /tmp/a.out",
 		},
-		{
-			ShortName:       "Cms-higgs-4l-full",
-			ImageRef:        "localhost:5000/cms-higgs-4l-full:latest",
-			SociIndexDigest: "sha256:7061ecf4a6b00812dad0fe9b0d49f7c7db59974d23912e5f448de5990b42b0f0",
-			ReadyLine:       "Report end",
-			Command:         "export CMS_INPUT_FILES=file:///tmp/0431F9FA-6202-E311-8B98-002481E1501E.root && /opt/cms/entrypoint.sh cmsRun /configs/demoanalyzer_cfg_level4MC.py",
-			Mount:           mount.Mount{Type: "bind", Source: "/tmp/0431F9FA-6202-E311-8B98-002481E1501E.root", Target: "/tmp/0431F9FA-6202-E311-8B98-002481E1501E.root"},
-		},
+		// {
+		// 	ShortName:       "Cms-higgs-4l-full",
+		// 	ImageRef:        "localhost:5000/cms-higgs-4l-full:latest",
+		// 	SociIndexDigest: "sha256:7061ecf4a6b00812dad0fe9b0d49f7c7db59974d23912e5f448de5990b42b0f0",
+		// 	ReadyLine:       "Report end",
+		// 	Command:         "export CMS_INPUT_FILES=file:///tmp/0431F9FA-6202-E311-8B98-002481E1501E.root && /opt/cms/entrypoint.sh cmsRun /configs/demoanalyzer_cfg_level4MC.py",
+		// 	Mount:           mount.Mount{Type: "bind", Source: "/tmp/0431F9FA-6202-E311-8B98-002481E1501E.root", Target: "/tmp/0431F9FA-6202-E311-8B98-002481E1501E.root"},
+		// },
 	}
 }
 

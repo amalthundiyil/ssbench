@@ -9,7 +9,7 @@ env:
 
 jobs:
   free-disk-space:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
 
     - name: Free Disk Space (Ubuntu)
