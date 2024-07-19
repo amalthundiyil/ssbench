@@ -142,13 +142,13 @@ func GetDefaultWorkloads() []ImageDescriptor {
 			ReadyLine:       "Hello World",
 			Command:         "python3 -c \"print('Hello World')\"",
 		},
-		{
-			ShortName:       "Gcc11.2.0",
-			ImageRef:        "localhost:5000/gcc:11.2.0",
-			SociIndexDigest: "sha256:3e8e261a6ab60fb93afaf75b3c5cc4455fa147ef7e779eb8509d18bf051fd0e0",
-			ReadyLine:       "Hello World",
-			Command:         "echo '#include <stdio.h>\nint main() { printf(\"Hello World\\n\"); return 0; }' > /tmp/main.c && gcc -o /tmp/a.out /tmp/main.c && /tmp/a.out",
-		},
+		// {
+		// 	ShortName:       "Gcc11.2.0",
+		// 	ImageRef:        "localhost:5000/gcc:11.2.0",
+		// 	SociIndexDigest: "sha256:3e8e261a6ab60fb93afaf75b3c5cc4455fa147ef7e779eb8509d18bf051fd0e0",
+		// 	ReadyLine:       "Hello World",
+		// 	Command:         "echo '#include <stdio.h>\nint main() { printf(\"Hello World\\n\"); return 0; }' > /tmp/main.c && gcc -o /tmp/a.out /tmp/main.c && /tmp/a.out",
+		// },
 		// {
 		// 	ShortName:       "Cms-higgs-4l-full",
 		// 	ImageRef:        "localhost:5000/cms-higgs-4l-full:latest",

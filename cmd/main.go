@@ -103,13 +103,13 @@ func main() {
 		// 		benchmark.SociFullRun(ctx, b, "SociFull"+shortName, image)
 		// 	},
 		// })
-		drivers = append(drivers, framework.BenchmarkTestDriver{
-			TestName:      "StargzFull" + shortName,
-			NumberOfTests: numberOfTests,
-			TestFunction: func(b *testing.B) {
-				benchmark.StargzFullRun(ctx, b, "StargzFull"+shortName, image)
-			},
-		})
+		// drivers = append(drivers, framework.BenchmarkTestDriver{
+		// 	TestName:      "StargzFull" + shortName,
+		// 	NumberOfTests: numberOfTests,
+		// 	TestFunction: func(b *testing.B) {
+		// 		benchmark.StargzFullRun(ctx, b, "StargzFull"+shortName, image)
+		// 	},
+		// })
 	}
 
 	benchmarks := framework.BenchmarkFramework{

@@ -1,5 +1,8 @@
 version = 2
 
+[debug]
+    level = "debug"
+
 [plugins."io.containerd.grpc.v1.cri".containerd]
     disable_snapshot_annotations = false
   

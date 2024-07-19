@@ -403,6 +403,7 @@ func CvmfsFullRun(
 	log.G(ctx).WithField("benchmark", "RunTask").WithField("event", "Start").Infof("Start Run Task")
 	runLazyTaskStart := time.Now()
 	cleanupRun, err := cvmfsContainerdProc.RunContainerTaskForReadyLine(ctx, taskDetails, imageDescriptor.ReadyLine, imageDescriptor.Timeout())
+	
 	lazyTaskDuration := time.Since(runLazyTaskStart)
 	log.G(ctx).WithField("benchmark", "RunTask").WithField("event", "Stop").Infof("Stop Run Task")
 	b.ReportMetric(float64(lazyTaskDuration.Milliseconds()), "lazyTaskDuration")
