@@ -24,9 +24,10 @@ func main() {
 	imageRef := "docker.io/library/python:3.9"
 	imageName := strings.Split(strings.Split(imageRef, "/")[2], ":")[0]
 
+	log.Default().Println("Pulling image")
 	image, err := client.Pull(ctx, imageRef,
 		containerd.WithPullUnpack,
-		containerd.WithPullSnapshotter("cvmfs-snapshotter"),
+		containerd.WithPullSnapshotter("stargz"),
 		containerd.WithImageHandlerWrapper(snapshotters.AppendInfoHandlerWrapper(imageRef)),
 	)
 	if err != nil {
@@ -41,13 +42,13 @@ func main() {
 	}
 	defer cleanupImage()
 
+	log.Default().Println("Creating container")
 	container, err := client.NewContainer(
 		ctx,
 		fmt.Sprintf("%s-%d", imageName, time.Now().UnixNano()),
-		containerd.WithImage(image),
 		containerd.WithNewSnapshot(fmt.Sprintf("%s-%d-snapshot", imageName, time.Now().UnixNano()), image),
 		containerd.WithNewSpec(oci.WithImageConfig(image)),
-		containerd.WithSnapshotter("cvmfs-snapshotter"),
+		containerd.WithSnapshotter("stargz"),
 	)
 	if err != nil {
 		log.Fatalf("Error creating new container: %s\n", err)
