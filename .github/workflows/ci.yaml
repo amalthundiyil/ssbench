@@ -1,111 +1,111 @@
-name: CI
+# name: CI
 
-on:
-  push:
-    branches: [master]
+# on:
+#   push:
+#     branches: [master]
 
-env:
-  GO_VERSION: "1.22.0"
+# env:
+#   GO_VERSION: "1.22.0"
 
-jobs:
-  free-disk-space:
-    runs-on: ubuntu-20.04
-    steps:
+# jobs:
+#   free-disk-space:
+#     runs-on: ubuntu-20.04
+#     steps:
 
-    - name: Free Disk Space (Ubuntu)
-      uses: jlumbroso/free-disk-space@main
-      with:
-        tool-cache: false
-        android: true
-        dotnet: true
-        haskell: true
-        large-packages: true
-        docker-images: true
-        swap-storage: true
+#     - name: Free Disk Space (Ubuntu)
+#       uses: jlumbroso/free-disk-space@main
+#       with:
+#         tool-cache: false
+#         android: true
+#         dotnet: true
+#         haskell: true
+#         large-packages: true
+#         docker-images: true
+#         swap-storage: true
 
-  benchmark:
-    runs-on: ubuntu-20.04
-    needs: free-disk-space
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install dependencies
-        run: sudo sh -c "PROJECT_DIR=$PROJECT_DIR bash ${{ github.workspace }}/scripts/install.sh"
-        env:
-          PROJECT_DIR: ${{ github.workspace }}
-      - name: Setup registry
-        run: sudo sh -c "PROJECT_DIR=$PROJECT_DIR bash ${{ github.workspace }}/scripts/setup.sh"
-        env:
-          PROJECT_DIR: ${{ github.workspace }}
-      - name: Run
-        run: cd ${{github.workspace}}/bin && sudo ./ssbench
-      - name: Upload results
-        uses: actions/upload-artifact@v4
-        with:
-          name: benchmark-result-artifact
-          path: ${{github.workspace}}/output/results.json
+#   benchmark:
+#     runs-on: ubuntu-20.04
+#     needs: free-disk-space
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+#       - name: Install dependencies
+#         run: sudo sh -c "PROJECT_DIR=$PROJECT_DIR bash ${{ github.workspace }}/scripts/install.sh"
+#         env:
+#           PROJECT_DIR: ${{ github.workspace }}
+#       - name: Setup registry
+#         run: sudo sh -c "PROJECT_DIR=$PROJECT_DIR bash ${{ github.workspace }}/scripts/setup.sh"
+#         env:
+#           PROJECT_DIR: ${{ github.workspace }}
+#       - name: Run
+#         run: cd ${{github.workspace}}/bin && sudo ./ssbench
+#       - name: Upload results
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: benchmark-result-artifact
+#           path: ${{github.workspace}}/output/results.json
 
-  download-and-convert-benchmark-result-to-visualization-data:
-    runs-on: ubuntu-20.04
-    needs: benchmark
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Download latest benchmark result
-        uses: actions/download-artifact@v4
-        with:
-          name: benchmark-result-artifact
-          path: ${{github.workspace}}
-      - name: Change permission of visualization-data-converter.sh
-        run: chmod +x ${{github.workspace}}/scripts/visualization-data-converter.sh
-      - name: Convert benchmark result to visualization data
-        run: ${{github.workspace}}/scripts/visualization-data-converter.sh ${{github.workspace}}/results.json ${{github.workspace}}/output
-      - name: Build matrix of filepaths
-        id: set-matrix
-        run: echo "files=$(find ${{github.workspace}}/output -type f -name '*.json' -printf '%p\n' | jq -R . | jq -cs .)" >> $GITHUB_OUTPUT
-      - name: Upload visualization files as github artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: benchmark-gh-pages-artifact
-          path: ${{github.workspace}}/output
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.files }}
+#   download-and-convert-benchmark-result-to-visualization-data:
+#     runs-on: ubuntu-20.04
+#     needs: benchmark
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+#       - name: Download latest benchmark result
+#         uses: actions/download-artifact@v4
+#         with:
+#           name: benchmark-result-artifact
+#           path: ${{github.workspace}}
+#       - name: Change permission of visualization-data-converter.sh
+#         run: chmod +x ${{github.workspace}}/scripts/visualization-data-converter.sh
+#       - name: Convert benchmark result to visualization data
+#         run: ${{github.workspace}}/scripts/visualization-data-converter.sh ${{github.workspace}}/results.json ${{github.workspace}}/output
+#       - name: Build matrix of filepaths
+#         id: set-matrix
+#         run: echo "files=$(find ${{github.workspace}}/output -type f -name '*.json' -printf '%p\n' | jq -R . | jq -cs .)" >> $GITHUB_OUTPUT
+#       - name: Upload visualization files as github artifacts
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: benchmark-gh-pages-artifact
+#           path: ${{github.workspace}}/output
+#     outputs:
+#       matrix: ${{ steps.set-matrix.outputs.files }}
 
-  push-benchmark-result-gh-pages:
-    name: Push benchmark result to Github-pages
-    runs-on: ubuntu-20.04
-    needs: download-and-convert-benchmark-result-to-visualization-data
-    strategy:
-      matrix:
-        file: ${{ fromJson(needs.download-and-convert-benchmark-result-to-visualization-data.outputs.matrix) }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+#   push-benchmark-result-gh-pages:
+#     name: Push benchmark result to Github-pages
+#     runs-on: ubuntu-20.04
+#     needs: download-and-convert-benchmark-result-to-visualization-data
+#     strategy:
+#       matrix:
+#         file: ${{ fromJson(needs.download-and-convert-benchmark-result-to-visualization-data.outputs.matrix) }}
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
 
-      - name: Create output folder
-        run: mkdir ${{github.workspace}}/output
+#       - name: Create output folder
+#         run: mkdir ${{github.workspace}}/output
 
-      - name: Download latest benchmark visualization files
-        uses: actions/download-artifact@v4
-        with:
-          name: benchmark-gh-pages-artifact
-          path: ${{github.workspace}}/output
+#       - name: Download latest benchmark visualization files
+#         uses: actions/download-artifact@v4
+#         with:
+#           name: benchmark-gh-pages-artifact
+#           path: ${{github.workspace}}/output
 
-      - name: Extract file names
-        id: get_filename
-        run: |
-          # Get the filename without the path
-          filename=$(basename "${{ matrix.file }}")
-          # Remove the .json extension
-          filename_without_extension="${filename%.json}"
-          echo "filename=$filename_without_extension" >> $GITHUB_OUTPUT
+#       - name: Extract file names
+#         id: get_filename
+#         run: |
+#           # Get the filename without the path
+#           filename=$(basename "${{ matrix.file }}")
+#           # Remove the .json extension
+#           filename_without_extension="${filename%.json}"
+#           echo "filename=$filename_without_extension" >> $GITHUB_OUTPUT
 
-      - name: Run benchmark action
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          name: Benchmark
-          tool: "customSmallerIsBetter"
-          benchmark-data-dir-path: "output/${{ steps.get_filename.outputs.filename }}"
-          output-file-path: ${{ matrix.file }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: true
+#       - name: Run benchmark action
+#         uses: benchmark-action/github-action-benchmark@v1
+#         with:
+#           name: Benchmark
+#           tool: "customSmallerIsBetter"
+#           benchmark-data-dir-path: "output/${{ steps.get_filename.outputs.filename }}"
+#           output-file-path: ${{ matrix.file }}
+#           github-token: ${{ secrets.GITHUB_TOKEN }}
+#           auto-push: true
