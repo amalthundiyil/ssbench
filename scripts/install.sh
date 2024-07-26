@@ -2,9 +2,9 @@
 
 set -xe
 
-if [ "$PROJECT_DIR" = "" ]; then 
+# if [ "$PROJECT_DIR" = "" ]; then 
     PROJECT_DIR="/home/vagrant/ssbench"
-fi
+# fi
 
 sudo mkdir -p $PROJECT_DIR/bin
 
@@ -47,25 +47,25 @@ sudo systemctl enable --now containerd
 # soci
 
 ## soci build deps
-sudo apt install zlib1g-dev gcc fuse unzip docker.io -y
-wget -c https://github.com/google/flatbuffers/releases/download/v23.3.3/Linux.flatc.binary.g++-10.zip -P /tmp
-sudo unzip -o /tmp/Linux.flatc.binary.g++-10.zip -d /usr/local
+# sudo apt install zlib1g-dev gcc fuse unzip docker.io -y
+# wget -c https://github.com/google/flatbuffers/releases/download/v23.3.3/Linux.flatc.binary.g++-10.zip -P /tmp
+# sudo unzip -o /tmp/Linux.flatc.binary.g++-10.zip -d /usr/local
 
-if [ ! -d /tmp/soci-snapshotter ]; then
-    git clone https://github.com/awslabs/soci-snapshotter /tmp/soci-snapshotter
-fi
-cd /tmp/soci-snapshotter
-git checkout 2f82461d214d2bc30843af32c52b7883b304db60
+# if [ ! -d /tmp/soci-snapshotter ]; then
+#     git clone https://github.com/awslabs/soci-snapshotter /tmp/soci-snapshotter
+# fi
+# cd /tmp/soci-snapshotter
+# git checkout 2f82461d214d2bc30843af32c52b7883b304db60
 ### Instead of sudo make
-cd cmd/ && GO111MODULE=auto sudo /usr/local/go/bin/go build -o /tmp/soci-snapshotter/out/soci-snapshotter-grpc  -ldflags '-X github.com/awslabs/soci-snapshotter/version.Version=2f82461 -X github.com/awslabs/soci-snapshotter/version.Revision=2f82461d214d2bc30843af32c52b7883b304db60  -s -w '  ./soci-snapshotter-grpc
-GO111MODULE=auto sudo /usr/local/go/bin/go build -o /tmp/soci-snapshotter/out/soci  -ldflags '-X github.com/awslabs/soci-snapshotter/version.Version=2f82461 -X github.com/awslabs/soci-snapshotter/version.Revision=2f82461d214d2bc30843af32c52b7883b304db60  -s -w '  ./soci
-sudo cp /tmp/soci-snapshotter/out/* /usr/local/bin
-sudo cp /tmp/soci-snapshotter/out/* $PROJECT_DIR/bin
-# if [ ! -f /tmp/soci-snapshotter-0.6.1-linux-amd64.tar.gz ]; then
-#     wget https://github.com/awslabs/soci-snapshotter/releases/download/v0.6.1/soci-snapshotter-0.6.1-linux-amd64.tar.gz -P /tmp
-# fi 
-# sudo tar -C /usr/local/bin -xvf /tmp/soci-snapshotter-0.6.1-linux-amd64.tar.gz soci soci-snapshotter-grpc
-# sudo tar -C $PROJECT_DIR/bin -xvf /tmp/soci-snapshotter-0.6.1-linux-amd64.tar.gz soci soci-snapshotter-grpc
+# cd cmd/ && GO111MODULE=auto sudo /usr/local/go/bin/go build -o /tmp/soci-snapshotter/out/soci-snapshotter-grpc  -ldflags '-X github.com/awslabs/soci-snapshotter/version.Version=2f82461 -X github.com/awslabs/soci-snapshotter/version.Revision=2f82461d214d2bc30843af32c52b7883b304db60  -s -w '  ./soci-snapshotter-grpc
+# GO111MODULE=auto sudo /usr/local/go/bin/go build -o /tmp/soci-snapshotter/out/soci  -ldflags '-X github.com/awslabs/soci-snapshotter/version.Version=2f82461 -X github.com/awslabs/soci-snapshotter/version.Revision=2f82461d214d2bc30843af32c52b7883b304db60  -s -w '  ./soci
+# sudo cp /tmp/soci-snapshotter/out/* /usr/local/bin
+# sudo cp /tmp/soci-snapshotter/out/* $PROJECT_DIR/bin
+if [ ! -f /tmp/soci-snapshotter-0.7.0-linux-amd64.tar.gz ]; then
+    wget https://github.com/awslabs/soci-snapshotter/releases/download/v0.7.0/soci-snapshotter-0.7.0-linux-amd64.tar.gz -P /tmp
+fi 
+sudo tar -C /usr/local/bin -xvf /tmp/soci-snapshotter-0.7.0-linux-amd64.tar.gz soci soci-snapshotter-grpc
+sudo tar -C $PROJECT_DIR/bin -xvf /tmp/soci-snapshotter-0.7.0-linux-amd64.tar.gz soci soci-snapshotter-grpc
 wget https://raw.githubusercontent.com/awslabs/soci-snapshotter/main/soci-snapshotter.service -O /usr/local/lib/systemd/system/soci-snapshotter.service
 
 # stargz

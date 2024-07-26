@@ -20,11 +20,15 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/amalthundiyil/ssbench/pkg/framework"
 	"github.com/containerd/containerd"
+	"github.com/containerd/containerd/oci"
+	"github.com/containerd/containerd/pkg/snapshotters"
 	"github.com/containerd/log"
 	"github.com/google/uuid"
 )
@@ -40,7 +44,7 @@ var (
 	sociBinary             = "../bin/soci-snapshotter-grpc"
 	sociAddress            = "/tmp/containerd-soci-grpc/containerd-soci-grpc.sock"
 	sociRoot               = "/tmp/lib/soci-snapshotter-grpc"
-	sociConfig             = "../soci.toml"
+	sociConfig             = "/tmp/containerd_config.toml"
 	stargzBinary           = "../bin/containerd-stargz-grpc"
 	stargzAddress          = "/tmp/containerd-stargz-grpc/containerd-stargz-grpc.sock"
 	stargzConfig           = "/tmp/containerd_config.toml"
@@ -378,7 +382,12 @@ func CvmfsFullRun(
 	pullStart := time.Now()
 	log.G(ctx).WithField("benchmark", "Test").WithField("event", "Start").Infof("Start Test")
 	log.G(ctx).WithField("benchmark", "Pull").WithField("event", "Start").Infof("Start Pull Image")
-	image, err := cvmfsContainerdProc.CvmfsPullImageFromRegistry(ctx, imageDescriptor.ImageRef)
+	fmt.Println("amal staretd pulling")
+	image, err := cvmfsContainerdProc.Client.Pull(ctx, imageDescriptor.ImageRef,
+		containerd.WithPullUnpack,
+		containerd.WithPullSnapshotter("cvmfs-snapshotter"),
+		containerd.WithImageHandlerWrapper(snapshotters.AppendInfoHandlerWrapper(imageDescriptor.ImageRef)),
+	)
 	log.G(ctx).WithField("benchmark", "Pull").WithField("event", "Stop").Infof("Stop Pull Image")
 	pullDuration := time.Since(pullStart)
 	b.ReportMetric(float64(pullDuration.Milliseconds()), "pullDuration")
@@ -387,23 +396,45 @@ func CvmfsFullRun(
 		fatalf(b, "%s", err)
 	}
 	log.G(ctx).WithField("benchmark", "CreateContainer").WithField("event", "Start").Infof("Start Create Container")
-	container, cleanupContainer, err := cvmfsContainerdProc.CreateContainer(ctx, imageDescriptor.ContainerOpts(image, containerd.WithSnapshotter("cvmfs-snapshotter"))...)
+	fmt.Println("amal started containreing")
+	imageName := strings.Split(strings.Split(image.Name(), "/")[1], ":")[0]
+	containerdId := fmt.Sprintf("%s-%d", imageName, time.Now().UnixNano())
+	rootfs, err := filepath.Abs(containerdId)
+	if err != nil {
+		fatalf(b, "Error in rootfs path: %s\n", err)
+	}
+	container, err := cvmfsContainerdProc.Client.NewContainer(
+		ctx,
+		containerdId,
+		containerd.WithNewSpec(oci.WithRootFSPath(rootfs), oci.WithImageConfig(image)),
+		containerd.WithImage(image),
+		containerd.WithSnapshotter("cvmfs-snapshotter"),
+	)
 	log.G(ctx).WithField("benchmark", "CreateContainer").WithField("event", "Stop").Infof("Stop Create Container")
 	if err != nil {
 		fatalf(b, "%s", err)
 	}
+	fmt.Println("amal finished containreing")
+	cleanupContainer := func() {
+		err = container.Delete(ctx, containerd.WithSnapshotCleanup)
+		if err != nil {
+			fatalf(b, "Error deleting container: %s\n", err)
+		}
+	}
 	defer cleanupContainer()
 	log.G(ctx).WithField("benchmark", "CreateTask").WithField("event", "Start").Infof("Start Create Task")
+	fmt.Println("amal starting tasking")
 	taskDetails, cleanupTask, err := cvmfsContainerdProc.CreateTask(ctx, container, imageDescriptor.Command)
 	log.G(ctx).WithField("benchmark", "CreateTask").WithField("event", "Stop").Infof("Stop Create Task")
 	if err != nil {
 		fatalf(b, "%s", err)
 	}
+	fmt.Println("amal finished tasking")
 	defer cleanupTask()
 	log.G(ctx).WithField("benchmark", "RunTask").WithField("event", "Start").Infof("Start Run Task")
 	runLazyTaskStart := time.Now()
 	cleanupRun, err := cvmfsContainerdProc.RunContainerTaskForReadyLine(ctx, taskDetails, imageDescriptor.ReadyLine, imageDescriptor.Timeout())
-	
+
 	lazyTaskDuration := time.Since(runLazyTaskStart)
 	log.G(ctx).WithField("benchmark", "RunTask").WithField("event", "Stop").Infof("Stop Run Task")
 	b.ReportMetric(float64(lazyTaskDuration.Milliseconds()), "lazyTaskDuration")
