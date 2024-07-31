@@ -31,6 +31,7 @@ func (proc *ContainerdProcess) PullImageFromRegistry(
 	platform string) (containerd.Image, error) {
 	opts := GetRemoteOpts(ctx, platform)
 	opts = append(opts, containerd.WithResolver(GetResolver(ctx, imageRef)))
+	opts = append(opts, containerd.WithPullUnpack)
 	image, pullErr := proc.Client.Pull(ctx, imageRef, opts...)
 	if pullErr != nil {
 		return nil, pullErr

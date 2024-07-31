@@ -109,7 +109,7 @@ func SociRPullPullImage(
 	b.StopTimer()
 }
 
-func SociFullRun(
+func Soci(
 	ctx context.Context,
 	b *testing.B,
 	testName string,
@@ -140,7 +140,10 @@ func SociFullRun(
 		fatalf(b, "%s", err)
 	}
 	log.G(ctx).WithField("benchmark", "CreateContainer").WithField("event", "Start").Infof("Start Create Container")
+	containerStart := time.Now()
 	container, cleanupContainer, err := sociContainerdProc.CreateSociContainer(ctx, image, imageDescriptor)
+	containerStartDuration := time.Since(containerStart)
+	b.ReportMetric(float64(containerStartDuration.Milliseconds()), "containerStartDuration")
 	log.G(ctx).WithField("benchmark", "CreateContainer").WithField("event", "Stop").Infof("Stop Create Container")
 	if err != nil {
 		fatalf(b, "%s", err)
@@ -189,7 +192,7 @@ func SociFullRun(
 	b.StopTimer()
 }
 
-func OverlayFSFullRun(
+func OverlayFS(
 	ctx context.Context,
 	b *testing.B,
 	testName string,
@@ -213,17 +216,21 @@ func OverlayFSFullRun(
 	if err != nil {
 		fatalf(b, "%s", err)
 	}
-	log.G(ctx).WithField("benchmark", "Unpack").WithField("event", "Start").Infof("Start Unpack Image")
-	unpackStart := time.Now()
-	err = image.Unpack(ctx, "overlayfs")
-	unpackDuration := time.Since(unpackStart)
-	log.G(ctx).WithField("benchmark", "Unpack").WithField("event", "Stop").Infof("Stop Unpack Image")
-	b.ReportMetric(float64(unpackDuration.Milliseconds()), "unpackDuration")
+	// log.G(ctx).WithField("benchmark", "Unpack").WithField("event", "Start").Infof("Start Unpack Image")
+	// unpackStart := time.Now()
+	// err = image.Unpack(ctx, "overlayfs")
+	// unpackDuration := time.Since(unpackStart)
+	// log.G(ctx).WithField("benchmark", "Unpack").WithField("event", "Stop").Infof("Stop Unpack Image")
+	// b.ReportMetric(float64(unpackDuration.Milliseconds()), "unpackDuration")
+	b.ReportMetric(0, "unpackDuration")
 	if err != nil {
 		fatalf(b, "%s", err)
 	}
 	log.G(ctx).WithField("benchmark", "CreateContainer").WithField("event", "Start").Infof("Start Create Container")
+	containerStart := time.Now()
 	container, cleanupContainer, err := containerdProcess.CreateContainer(ctx, imageDescriptor.ContainerOpts(image)...)
+	containerStartDuration := time.Since(containerStart)
+	b.ReportMetric(float64(containerStartDuration.Milliseconds()), "containerStartDuration")
 	log.G(ctx).WithField("benchmark", "CreateContainer").WithField("event", "Stop").Infof("Stop Create Container")
 	if err != nil {
 		fatalf(b, "%s", err)
@@ -274,7 +281,7 @@ func OverlayFSFullRun(
 	b.StopTimer()
 }
 
-func StargzFullRun(
+func Stargz(
 	ctx context.Context,
 	b *testing.B,
 	testName string,
@@ -307,7 +314,10 @@ func StargzFullRun(
 		fatalf(b, "%s", err)
 	}
 	log.G(ctx).WithField("benchmark", "CreateContainer").WithField("event", "Start").Infof("Start Create Container")
+	containerStart := time.Now()
 	container, cleanupContainer, err := stargzContainerdProc.CreateContainer(ctx, imageDescriptor.ContainerOpts(image, containerd.WithSnapshotter("stargz"))...)
+	containerStartDuration := time.Since(containerStart)
+	b.ReportMetric(float64(containerStartDuration.Milliseconds()), "containerStartDuration")
 	log.G(ctx).WithField("benchmark", "CreateContainer").WithField("event", "Stop").Infof("Stop Create Container")
 	if err != nil {
 		fatalf(b, "%s", err)
@@ -358,7 +368,7 @@ func StargzFullRun(
 	b.StopTimer()
 }
 
-func CvmfsFullRun(
+func Cvmfs(
 	ctx context.Context,
 	b *testing.B,
 	testName string,
@@ -382,7 +392,6 @@ func CvmfsFullRun(
 	pullStart := time.Now()
 	log.G(ctx).WithField("benchmark", "Test").WithField("event", "Start").Infof("Start Test")
 	log.G(ctx).WithField("benchmark", "Pull").WithField("event", "Start").Infof("Start Pull Image")
-	fmt.Println("amal staretd pulling")
 	image, err := cvmfsContainerdProc.Client.Pull(ctx, imageDescriptor.ImageRef,
 		containerd.WithPullUnpack,
 		containerd.WithPullSnapshotter("cvmfs-snapshotter"),
@@ -396,13 +405,13 @@ func CvmfsFullRun(
 		fatalf(b, "%s", err)
 	}
 	log.G(ctx).WithField("benchmark", "CreateContainer").WithField("event", "Start").Infof("Start Create Container")
-	fmt.Println("amal started containreing")
 	imageName := strings.Split(strings.Split(image.Name(), "/")[1], ":")[0]
 	containerdId := fmt.Sprintf("%s-%d", imageName, time.Now().UnixNano())
 	rootfs, err := filepath.Abs(containerdId)
 	if err != nil {
 		fatalf(b, "Error in rootfs path: %s\n", err)
 	}
+	containerStart := time.Now()
 	container, err := cvmfsContainerdProc.Client.NewContainer(
 		ctx,
 		containerdId,
@@ -410,11 +419,12 @@ func CvmfsFullRun(
 		containerd.WithImage(image),
 		containerd.WithSnapshotter("cvmfs-snapshotter"),
 	)
+	containerStartDuration := time.Since(containerStart)
+	b.ReportMetric(float64(containerStartDuration.Milliseconds()), "containerStartDuration")
 	log.G(ctx).WithField("benchmark", "CreateContainer").WithField("event", "Stop").Infof("Stop Create Container")
 	if err != nil {
 		fatalf(b, "%s", err)
 	}
-	fmt.Println("amal finished containreing")
 	cleanupContainer := func() {
 		err = container.Delete(ctx, containerd.WithSnapshotCleanup)
 		if err != nil {
@@ -423,13 +433,11 @@ func CvmfsFullRun(
 	}
 	defer cleanupContainer()
 	log.G(ctx).WithField("benchmark", "CreateTask").WithField("event", "Start").Infof("Start Create Task")
-	fmt.Println("amal starting tasking")
 	taskDetails, cleanupTask, err := cvmfsContainerdProc.CreateTask(ctx, container, imageDescriptor.Command)
 	log.G(ctx).WithField("benchmark", "CreateTask").WithField("event", "Stop").Infof("Stop Create Task")
 	if err != nil {
 		fatalf(b, "%s", err)
 	}
-	fmt.Println("amal finished tasking")
 	defer cleanupTask()
 	log.G(ctx).WithField("benchmark", "RunTask").WithField("event", "Start").Infof("Start Run Task")
 	runLazyTaskStart := time.Now()
