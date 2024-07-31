@@ -34,28 +34,49 @@ for benchmark_result in benchmark_results:
     benchmark_result_cleaned[image][snapshotter] = { 
         "pull_time" : benchmark_result['pullStats']["max"],
         "create_time" : benchmark_result['createStats']["max"], 
-        "run_time" : benchmark_result['lazyTaskStats']["max"], 
+        "run_time" : benchmark_result['fullRunStats']["max"], 
+        # "run_time" : benchmark_result['lazyTaskStats']["max"], 
         # "unpackStats" : benchmark_result['unpackStats']["max"],
-        # "full_run_stats": benchmark_result['fullRunStats']['max']
+        "full_run_stats": benchmark_result['fullRunStats']['max']
      }
 
 
 # plot 
-
 ROOT.gStyle.SetOptStat(0)
+# ROOT.gStyle.SetLegendTextSize(0.04)
 for image, snapshotters in benchmark_result_cleaned.items():
     canvas = ROOT.TCanvas(image, image, 500, 500)
-    histogram = ROOT.TH1F(image, f"{image};;Time [s];", len(snapshotters), -0.5, len(snapshotters) - 0.5)
+    stack = ROOT.THStack("ts", image)
+    stack_items = ["pull_time", "create_time", "run_time"]
+    fill_styles = [0, 3005, 3001]
+    fill_colors = [ROOT.kGray, ROOT.kGray+2, ROOT.kBlack]
+    legend = ROOT.TLegend(0.9,0.7,0.48,0.898)
 
-    for i, snapshotter in enumerate(snapshotters):
-        histogram.SetBinContent(i + 1, benchmark_result_cleaned[image][snapshotter]["full_run_stats"])
-        histogram.GetXaxis().SetBinLabel(i + 1, snapshotter)
-        histogram.GetXaxis().SetLabelSize(0.06)
-        histogram.GetXaxis().SetTickLength(0)
-        ROOT.gPad.SetLeftMargin(0.15)
-        histogram.GetYaxis().SetTitleOffset(1.7)
-        histogram.SetMinimum(0)
-        
+    for item_idx, item in enumerate(stack_items):
+        for snapshotter_idx, snapshotter in enumerate(snapshotters):
+            histogram = ROOT.TH1F(f"{image}-{snapshotter}-{item}", f"{image};;Time [s];", len(snapshotters), -0.5, len(snapshotters) - 0.5)
+            histogram.SetBinContent(snapshotter_idx + 1, benchmark_result_cleaned[image][snapshotter][item])
+            histogram.GetXaxis().SetBinLabel(snapshotter_idx + 1, snapshotter)
+            histogram.GetXaxis().SetLabelSize(0.06)
+            histogram.GetXaxis().SetTickLength(0)
+            histogram.GetYaxis().SetTitleOffset(1.7)
+            histogram.SetMinimum(0)
+            histogram.SetFillStyle(fill_styles[item_idx])
+            histogram.SetFillColor(fill_colors[item_idx])
+            stack.Add(histogram)
+
+            label = " ".join([w.capitalize() for w in item.split("_")])
+            legend.AddEntry(histogram, label, "f")
+    
     canvas.Draw()
     histogram.Draw()
+    stack.Draw()
+    stack.GetXaxis().SetTickLength(0)
+    stack.GetXaxis().SetLabelSize(0.06)
+    stack.GetXaxis().SetTickLength(0)
+    # ROOT.gPad.SetLeftMargin(0.15)
+    stack.GetYaxis().SetTitleOffset(1.22)
+    stack.GetYaxis().SetTitle("Time [s]")
+    legend.SetBorderSize(0)
+    legend.Draw()
     canvas.SaveAs(f"output/plots/{image}.png")
