@@ -142,18 +142,18 @@ func (proc *ContainerdProcess) CreateContainer(
 	container, err := proc.Client.NewContainer(
 		ctx,
 		id,
-		opts...)
-	if err != nil {
-		return nil, nil, err
-	}
-	cleanupFunc := func() {
-		err = container.Delete(ctx, containerd.WithSnapshotCleanup)
+			opts...)
 		if err != nil {
-			fmt.Printf("Error deleting container: %v\n", err)
+			return nil, nil, err
 		}
+		cleanupFunc := func() {
+			err = container.Delete(ctx, containerd.WithSnapshotCleanup)
+			if err != nil {
+				fmt.Printf("Error deleting container: %v\n", err)
+			}
+									}
+		return container, cleanupFunc, nil
 	}
-	return container, cleanupFunc, nil
-}
 
 type TaskDetails struct {
 	task         containerd.Task

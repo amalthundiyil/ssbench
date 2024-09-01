@@ -26,8 +26,6 @@ import (
 	"time"
 
 	"github.com/containerd/containerd"
-	"github.com/containerd/containerd/contrib/nvidia"
-	"github.com/containerd/containerd/mount"
 	"github.com/containerd/containerd/oci"
 	runtimespec "github.com/opencontainers/runtime-spec/specs-go"
 )
@@ -42,7 +40,6 @@ type ImageDescriptor struct {
 	Command         string       `json:"command"`
 	TimeoutSec      int64        `json:"timeout_sec"`
 	ImageOptions    ImageOptions `json:"options"`
-	Mount           mount.Mount  `json:"mount"`
 }
 
 func (i *ImageDescriptor) Timeout() time.Duration {
@@ -76,31 +73,21 @@ func (i *ImageDescriptor) ContainerOpts(image containerd.Image, o ...containerd.
 	id := fmt.Sprintf("%s-%d", testContainerID, time.Now().UnixNano())
 	opts = append(opts, containerd.WithNewSnapshot(id, image))
 	ociOpts = append(ociOpts, oci.WithImageConfig(image))
-	if len(i.ImageOptions.Mounts) > 0 {
-		ociOpts = append(ociOpts, oci.WithMounts(i.ImageOptions.Mounts))
-	}
-	if i.ImageOptions.Gpu {
-		ociOpts = append(ociOpts, nvidia.WithGPUs(nvidia.WithAllDevices, nvidia.WithAllCapabilities))
-	}
-	if len(i.ImageOptions.Env) > 0 {
-		ociOpts = append(ociOpts, oci.WithEnv(i.ImageOptions.Env))
-	}
-	if i.ImageOptions.ShmSize > 0 {
-		ociOpts = append(ociOpts, oci.WithDevShmSize(i.ImageOptions.ShmSize))
-	}
-	if i.ImageOptions.Net == "host" {
-		hostname, err := os.Hostname()
-		if err != nil {
-			panic(fmt.Errorf("get hostname: %w", err))
-		}
-		ociOpts = append(ociOpts,
-			oci.WithHostNamespace(runtimespec.NetworkNamespace),
-			oci.WithHostHostsFile,
-			oci.WithHostResolvconf,
-			oci.WithEnv([]string{fmt.Sprintf("HOSTNAME=%s", hostname)}),
-		)
-	}
-
+	// if len(i.ImageOptions.Mounts) > 0 {
+	// 	ociOpts = append(ociOpts, oci.WithMounts(i.ImageOptions.Mounts))
+	// }
+	// if i.ImageOptions.Net == "host" {
+	// 	hostname, err := os.Hostname()
+	// 	if err != nil {
+	// 		panic(fmt.Errorf("get hostname: %w", err))
+	// 	}
+	// 	ociOpts = append(ociOpts,
+	// 		oci.WithHostNamespace(runtimespec.NetworkNamespace),
+	// 		oci.WithHostHostsFile,
+	// 		oci.WithHostResolvconf,
+	// 		oci.WithEnv([]string{fmt.Sprintf("HOSTNAME=%s", hostname)}),
+	// 	)
+	// }
 	opts = append(opts, containerd.WithNewSpec(ociOpts...))
 	return opts
 }
@@ -112,7 +99,6 @@ func GetImageList(file string) ([]ImageDescriptor, error) {
 	}
 	defer f.Close()
 	return GetImageListFromJSON(f)
-
 }
 
 func GetImageListFromJSON(r io.Reader) ([]ImageDescriptor, error) {
@@ -149,14 +135,22 @@ func GetDefaultWorkloads() []ImageDescriptor {
 			ReadyLine:       "Hello World",
 			Command:         "echo '#include <stdio.h>\nint main() { printf(\"Hello World\\n\"); return 0; }' > /tmp/main.c && gcc -o /tmp/a.out /tmp/main.c && /tmp/a.out",
 		},
-		{
-			ShortName:       "cms-higgs-4l-full:latest",
-			ImageRef:        "localhost:5000/cms-higgs-4l-full:latest",
-			SociIndexDigest: "sha256:39bdb13731107f67e8d691bd8984a5e9191eaa9ca113e9cf48241d7cdabb864f",
-			ReadyLine:       "Report end",
-			Command:         "export CMS_INPUT_FILES=file:///tmp/0431F9FA-6202-E311-8B98-002481E1501E.root && /opt/cms/entrypoint.sh cmsRun /configs/demoanalyzer_cfg_level4MC.py",
-			Mount:           mount.Mount{Type: "bind", Source: "/tmp/0431F9FA-6202-E311-8B98-002481E1501E.root", Target: "/tmp/0431F9FA-6202-E311-8B98-002481E1501E.root"},
-		},
+		// {
+		// 	ShortName:       "cms-higgs-4l-full:latest",
+		// 	ImageRef:        "localhost:5000/cms-higgs-4l-full:latest",
+		// 	SociIndexDigest: "sha256:39bdb13731107f67e8d691bd8984a5e9191eaa9ca113e9cf48241d7cdabb864f",
+		// 	ReadyLine:       "Report end",
+		// 	Command:         "export CMS_INPUT_FILES=file:///tmp/0431F9FA-6202-E311-8B98-002481E1501E.root && /opt/cms/entrypoint.sh cmsRun /configs/demoanalyzer_cfg_level4MC.py",
+		// 	ImageOptions: ImageOptions{
+		// 		Mounts: []runtimespec.Mount{
+		// 			{
+		// 				Type:        "bind",
+		// 				Source:      "/tmp/0431F9FA-6202-E311-8B98-002481E1501E.root",
+		// 				Destination: "/0431F9FA-6202-E311-8B98-002481E1501E.root",
+		// 			},
+		// 		},
+		// 	},
+		// },
 	}
 }
 

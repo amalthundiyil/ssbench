@@ -1,0 +1,102 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"strings"
+	"syscall"
+	"time"
+
+	"github.com/containerd/containerd"
+	"github.com/containerd/containerd/cio"
+	"github.com/containerd/containerd/namespaces"
+	"github.com/containerd/containerd/oci"
+	"github.com/containerd/containerd/pkg/snapshotters"
+)
+
+func main() {
+	client, err := containerd.New("/run/containerd/containerd.sock")
+	if err != nil {
+		log.Fatalf("Error creating client: %s\n", err)
+	}
+	defer client.Close()
+
+	ctx := namespaces.WithNamespace(context.Background(), "default")
+	imageRef := "ghcr.io/stargz-containers/alpine:3.15.3-esgz"
+	imageName := strings.Split(strings.Split(imageRef, "/")[2], ":")[0]
+
+	image, err := client.Pull(ctx, imageRef,
+		containerd.WithSchema1Conversion, //lint:ignore SA1019
+		containerd.WithPullUnpack,
+		containerd.WithPullSnapshotter("stargz"),
+		containerd.WithImageHandlerWrapper(snapshotters.AppendInfoHandlerWrapper(imageRef)),
+	)
+	if err != nil {
+		log.Fatalf("Error pulling image: %s\n", err)
+	}
+
+	cleanupImage := func() {
+		err = client.ImageService().Delete(ctx, image.Name())
+		if err != nil {
+			log.Fatalf("Error deleting image: %s\n", err)
+		}
+	}
+	defer cleanupImage()
+
+	containerdId := fmt.Sprintf("%s-%d", imageName, time.Now().UnixNano())
+	container, err := client.NewContainer(
+		ctx,
+		containerdId,
+		// containerd.WithImage(image),
+		containerd.WithSnapshotter("stargz"),
+		containerd.WithNewSnapshot(containerdId+"-snapshot", image),
+		containerd.WithNewSpec(oci.WithImageConfig(image)),
+	)
+	if err != nil {
+		log.Fatalf("Error creating new container: %s\n", err)
+	}
+	// cleanupContainer := func() {
+	// 	err = container.Delete(ctx, containerd.WithSnapshotCleanup)
+	// 	if err != nil {
+	// 		log.Fatalf("Error deleting container: %s\n", err)
+	// 	}
+	// }
+	// defer cleanupContainer()
+
+	command := "echo '#include <stdio.h>\nint main() { printf(\"Hello World\\n\"); return 0; }' > /tmp/main.c && gcc -o /tmp/a.out /tmp/main.c && /tmp/a.out"
+	cioCreator := cio.BinaryIO("/usr/bin/sh", map[string]string{"-c": command})
+	task, err := container.NewTask(ctx, cioCreator)
+	if err != nil {
+		log.Fatalf("Error creating task: %s\n", err)
+	}
+	status, err := task.Wait(ctx)
+	if err != nil {
+		log.Fatalf("Error waiting task: %s\n", err)
+	}
+	fmt.Println("Waiting")
+	<-status
+	err = task.Start(ctx)
+	if err == nil {
+		os.Exit(0)
+	}
+	log.Fatalf("Error starting task: %s\n", err)
+
+	cleanupTask := func() {
+		processStatus, _ := task.Status(ctx)
+		fmt.Printf("Error cleaning up task: %s\n", processStatus.Status)
+		if processStatus.Status != "stopped" {
+			fmt.Printf("Tried to kill task")
+			err = task.Kill(ctx, syscall.SIGKILL)
+			if err != nil {
+				fmt.Printf("Error killing task: %v\n", err)
+			}
+		}
+		_, err = task.Delete(ctx)
+		if err != nil {
+			fmt.Printf("Error deleting task: %v\n", err)
+		}
+	}
+	defer cleanupTask()
+}
