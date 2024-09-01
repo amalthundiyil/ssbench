@@ -82,20 +82,20 @@ func main() {
 	for _, image := range imageList {
 		image := image
 		shortName := image.ShortName
-		// drivers = append(drivers, framework.BenchmarkTestDriver{
-		// 	TestName:      "overlayfs " + shortName,
-		// 	NumberOfTests: numberOfTests,
-		// 	TestFunction: func(b *testing.B) {
-		// 		benchmark.OverlayFS(ctx, b, "overlayfs "+shortName, image)
-		// 	},
-		// })
-		// drivers = append(drivers, framework.BenchmarkTestDriver{
-		// 	TestName:      "soci " + shortName,
-		// 	NumberOfTests: numberOfTests,
-		// 	TestFunction: func(b *testing.B) {
-		// 		benchmark.Soci(ctx, b, "soci "+shortName, image)
-		// 	},
-		// })
+		drivers = append(drivers, framework.BenchmarkTestDriver{
+			TestName:      "overlayfs " + shortName,
+			NumberOfTests: numberOfTests,
+			TestFunction: func(b *testing.B) {
+				benchmark.OverlayFS(ctx, b, "overlayfs "+shortName, image)
+			},
+		})
+		drivers = append(drivers, framework.BenchmarkTestDriver{
+			TestName:      "soci " + shortName,
+			NumberOfTests: numberOfTests,
+			TestFunction: func(b *testing.B) {
+				benchmark.Soci(ctx, b, "soci "+shortName, image)
+			},
+		})
 		drivers = append(drivers, framework.BenchmarkTestDriver{
 			TestName:      "stargz " + shortName,
 			NumberOfTests: numberOfTests,

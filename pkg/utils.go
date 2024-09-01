@@ -73,21 +73,10 @@ func (i *ImageDescriptor) ContainerOpts(image containerd.Image, o ...containerd.
 	id := fmt.Sprintf("%s-%d", testContainerID, time.Now().UnixNano())
 	opts = append(opts, containerd.WithNewSnapshot(id, image))
 	ociOpts = append(ociOpts, oci.WithImageConfig(image))
-	// if len(i.ImageOptions.Mounts) > 0 {
-	// 	ociOpts = append(ociOpts, oci.WithMounts(i.ImageOptions.Mounts))
-	// }
-	// if i.ImageOptions.Net == "host" {
-	// 	hostname, err := os.Hostname()
-	// 	if err != nil {
-	// 		panic(fmt.Errorf("get hostname: %w", err))
-	// 	}
-	// 	ociOpts = append(ociOpts,
-	// 		oci.WithHostNamespace(runtimespec.NetworkNamespace),
-	// 		oci.WithHostHostsFile,
-	// 		oci.WithHostResolvconf,
-	// 		oci.WithEnv([]string{fmt.Sprintf("HOSTNAME=%s", hostname)}),
-	// 	)
-	// }
+	ociOpts = append(ociOpts, oci.WithProcessArgs("/bin/sh", "-c", i.Command))
+	if len(i.ImageOptions.Mounts) > 0 {
+		ociOpts = append(ociOpts, oci.WithMounts(i.ImageOptions.Mounts))
+	}
 	opts = append(opts, containerd.WithNewSpec(ociOpts...))
 	return opts
 }
@@ -120,11 +109,20 @@ func GetCommitHash() (string, error) {
 }
 
 func GetDefaultWorkloads() []ImageDescriptor {
+	mounts := []runtimespec.Mount{
+		{
+			Type:        "bind",
+			Source:      "/tmp/0431F9FA-6202-E311-8B98-002481E1501E.root",
+			Destination: "/tmp/0431F9FA-6202-E311-8B98-002481E1501E.root",
+			Options:     []string{"rbind", "rw"},
+		},
+	}
+
 	return []ImageDescriptor{
 		{
 			ShortName:       "python:3.9",
 			ImageRef:        "localhost:5000/python:3.9",
-			SociIndexDigest: "sha256:c4504886a35598884769ee20e92baebe24ca2234874e2e60d1b99fa397104ad2",
+			SociIndexDigest: "sha256:fe7d8fc5c26736d806f1cc0407ec190f81f8485c6bad127bc3696bd1748f5420",
 			ReadyLine:       "Hello World",
 			Command:         "python3 -c \"print('Hello World')\"",
 		},
@@ -133,24 +131,30 @@ func GetDefaultWorkloads() []ImageDescriptor {
 			ImageRef:        "localhost:5000/gcc:11.2.0",
 			SociIndexDigest: "sha256:7dc1d7344df1ab0d32b24f7590a1f08dc1ca06a2e62d63caf37c1566fc6f32f3",
 			ReadyLine:       "Hello World",
-			Command:         "echo '#include <stdio.h>\nint main() { printf(\"Hello World\\n\"); return 0; }' > /tmp/main.c && gcc -o /tmp/a.out /tmp/main.c && /tmp/a.out",
+			Command:         `echo '#include <stdio.h>\n int main() { printf("Hello World\\n"); return 0; }' > /tmp/main.c && gcc -o /tmp/a.out /tmp/main.c && /tmp/a.out`,
 		},
-		// {
-		// 	ShortName:       "cms-higgs-4l-full:latest",
-		// 	ImageRef:        "localhost:5000/cms-higgs-4l-full:latest",
-		// 	SociIndexDigest: "sha256:39bdb13731107f67e8d691bd8984a5e9191eaa9ca113e9cf48241d7cdabb864f",
-		// 	ReadyLine:       "Report end",
-		// 	Command:         "export CMS_INPUT_FILES=file:///tmp/0431F9FA-6202-E311-8B98-002481E1501E.root && /opt/cms/entrypoint.sh cmsRun /configs/demoanalyzer_cfg_level4MC.py",
-		// 	ImageOptions: ImageOptions{
-		// 		Mounts: []runtimespec.Mount{
-		// 			{
-		// 				Type:        "bind",
-		// 				Source:      "/tmp/0431F9FA-6202-E311-8B98-002481E1501E.root",
-		// 				Destination: "/0431F9FA-6202-E311-8B98-002481E1501E.root",
-		// 			},
-		// 		},
-		// 	},
-		// },
+		{
+			ShortName:       "root:6.32.02-ubuntu24.04",
+			ImageRef:        "localhost:5000/root:6.32.02-ubuntu24.04",
+			SociIndexDigest: "sha256:a844051b4b477cc0362ef8fab2e5884185b9b091661f27f2626577094bf08be2",
+			ReadyLine:       "Hello World",
+			Command:         `echo '#include <stdio.h>\n int main() { printf("Hello World\\n"); return 0; }' > /tmp/main.c && root -l -q /tmp/main.c`,
+		},
+		{
+			ShortName:       "cms-higgs-4l-full:latest",
+			ImageRef:        "localhost:5000/cms-higgs-4l-full:latest",
+			SociIndexDigest: "sha256:39bdb13731107f67e8d691bd8984a5e9191eaa9ca113e9cf48241d7cdabb864f",
+			ReadyLine:       "Report end",
+			Command:         "export CMS_INPUT_FILES=file:///tmp/0431F9FA-6202-E311-8B98-002481E1501E.root && /opt/cms/entrypoint.sh cmsRun /configs/demoanalyzer_cfg_level4MC.py",
+			ImageOptions:    ImageOptions{Mounts: mounts},
+		},
+		{
+			ShortName:       "centos:7",
+			ImageRef:        "localhost:5000/centos:7",
+			SociIndexDigest: "sha256:fab72f18e60eaafc48974dac821d3db87c2fec166b821bc2079bb072007fa333",
+			ReadyLine:       "Hello World",
+			Command:         "echo 'Hello World'",
+		},
 	}
 }
 

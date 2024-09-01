@@ -142,18 +142,18 @@ func (proc *ContainerdProcess) CreateContainer(
 	container, err := proc.Client.NewContainer(
 		ctx,
 		id,
-			opts...)
-		if err != nil {
-			return nil, nil, err
-		}
-		cleanupFunc := func() {
-			err = container.Delete(ctx, containerd.WithSnapshotCleanup)
-			if err != nil {
-				fmt.Printf("Error deleting container: %v\n", err)
-			}
-									}
-		return container, cleanupFunc, nil
+		opts...)
+	if err != nil {
+		return nil, nil, err
 	}
+	cleanupFunc := func() {
+		err = container.Delete(ctx, containerd.WithSnapshotCleanup)
+		if err != nil {
+			fmt.Printf("Error deleting container: %v\n", err)
+		}
+	}
+	return container, cleanupFunc, nil
+}
 
 type TaskDetails struct {
 	task         containerd.Task
@@ -163,10 +163,10 @@ type TaskDetails struct {
 
 func (proc *ContainerdProcess) CreateTask(
 	ctx context.Context,
-	container containerd.Container, command string) (*TaskDetails, func(), error) {
+	container containerd.Container) (*TaskDetails, func(), error) {
 	stdoutPipeReader, stdoutPipeWriter := io.Pipe()
 	stderrPipeReader, stderrPipeWriter := io.Pipe()
-	cioCreator := cio.BinaryIO("/usr/bin/sh", map[string]string{"-c": command})
+	cioCreator := cio.NewCreator(cio.WithStreams(nil, stdoutPipeWriter, stderrPipeWriter))
 	task, err := container.NewTask(ctx, cioCreator)
 	if err != nil {
 		return nil, nil, err
@@ -225,6 +225,7 @@ func (proc *ContainerdProcess) RunContainerTaskForReadyLine(
 	go func() {
 		for stderrScanner.Scan() {
 			nextLine := stderrScanner.Text()
+			fmt.Println(nextLine)
 			if strings.Contains(nextLine, readyLine) {
 				resultChannel <- "READYLINE_STDERR"
 				return
@@ -240,6 +241,7 @@ func (proc *ContainerdProcess) RunContainerTaskForReadyLine(
 	go func() {
 		for stdoutScanner.Scan() {
 			nextLine := stdoutScanner.Text()
+			fmt.Println(nextLine)
 			if strings.Contains(nextLine, readyLine) {
 				resultChannel <- "READYLINE_STDOUT"
 				return

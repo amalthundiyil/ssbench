@@ -6,6 +6,8 @@ IMAGES=(
     "library/python:3.9" 
     "library/gcc:11.2.0"
     "clelange/cms-higgs-4l-full:latest"
+    "rootproject/root:6.32.02-ubuntu24.04"
+    "library/centos:7"
 )
 
 REGISTRY="localhost:5000"
@@ -24,8 +26,7 @@ for IMAGE in "${IMAGES[@]}"; do
     sudo nerdctl image tag "registry.hub.docker.com/$IMAGE" "$REGISTRY/$IMAGE_NAME"
     sudo nerdctl --insecure-registry push --snapshotter soci "$REGISTRY/$IMAGE_NAME"
 
-    if [ "$IMAGE" = "clelange/cms-higgs-4l-full:latest" ]; then
-        echo "Optimizing image"
+    if [ "$IMAGE" = "clelange/cms-higgs-4l-full:latest" ] || [ "$IMAGE" = "rootproject/root:6.32.02-ubuntu24.04" ]|| [ "$IMAGE" = "library/centos:7" ]; then
         if [ ! -f /tmp/0431F9FA-6202-E311-8B98-002481E1501E.root ]; then
             wget http://opendata.cern.ch/record/9538/files/assets/cms/MonteCarlo2012/Summer12_DR53X/TTGJets_8TeV-madgraph/AODSIM/PU_RD1_START53_V7N-v1/10000/0431F9FA-6202-E311-8B98-002481E1501E.root -P /tmp
         fi
