@@ -56,17 +56,20 @@ for image, snapshotters in benchmark_result_cleaned.items():
         for snapshotter_idx, snapshotter in enumerate(snapshotters):
             histogram = ROOT.TH1F(f"{image}-{snapshotter}-{item}", f"{image};;Time [s];", len(snapshotters), -0.5, len(snapshotters) - 0.5)
             histogram.SetBinContent(snapshotter_idx + 1, benchmark_result_cleaned[image][snapshotter][item])
-            histogram.GetXaxis().SetBinLabel(snapshotter_idx + 1, snapshotter)
-            histogram.GetXaxis().SetLabelSize(0.06)
             histogram.GetXaxis().SetTickLength(0)
             histogram.GetYaxis().SetTitleOffset(1.7)
             histogram.SetMinimum(0)
             histogram.SetFillStyle(fill_styles[item_idx])
             histogram.SetFillColor(fill_colors[item_idx])
-            stack.Add(histogram)
 
-            label = " ".join([w.capitalize() for w in item.split("_")])
-            legend.AddEntry(histogram, label, "f")
+            if item_idx == 0:
+                histogram.GetXaxis().SetBinLabel(snapshotter_idx + 1, snapshotter)
+                histogram.GetXaxis().SetLabelSize(0.06)
+            if snapshotter_idx == 0:
+                label = " ".join([w.capitalize() for w in item.split("_")])
+                legend.AddEntry(histogram, label, "f")
+
+            stack.Add(histogram)
     
     canvas.Draw()
     histogram.Draw()

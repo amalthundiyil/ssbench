@@ -102,13 +102,13 @@ func main() {
 			TestFunction: func(b *testing.B) {
 				benchmark.Stargz(ctx, b, "stargz "+shortName, image)
 			}})
-		// drivers = append(drivers, framework.BenchmarkTestDriver{
-		// 	TestName:      "cvmfs " + shortName,
-		// 	NumberOfTests: numberOfTests,
-		// 	TestFunction: func(b *testing.B) {
-		// 		benchmark.Cvmfs(ctx, b, "cvmfs "+shortName, image)
-		// 	},
-		// })
+		drivers = append(drivers, framework.BenchmarkTestDriver{
+			TestName:      "cvmfs " + shortName,
+			NumberOfTests: numberOfTests,
+			TestFunction: func(b *testing.B) {
+				benchmark.Cvmfs(ctx, b, "cvmfs "+shortName, image)
+			},
+		})
 	}
 
 	benchmarks := framework.BenchmarkFramework{
@@ -116,11 +116,6 @@ func main() {
 		CommitID:  commit,
 		Drivers:   drivers,
 	}
-	cvmfsProcess, err := benchmark.GetCvmfsProcess("../bin/cvmfs_snapshotter")
-	if err != nil {
-		fmt.Printf("Failed to create cvmfs proc: %v\n", err)
-	}
-	defer cvmfsProcess.StopProcess()
 
 	benchmarks.Run(ctx)
 }

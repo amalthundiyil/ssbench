@@ -26,10 +26,11 @@ func main() {
 	defer client.Close()
 
 	ctx := namespaces.WithNamespace(context.Background(), "default")
-	imageRef := "docker.io/library/gcc:11.2.0"
+	// imageRef := "docker.io/library/gcc:11.2.0"
+	imageRef := "docker.io/clelange/cms-higgs-4l-full:latest"
 	// imageRef := "ghcr.io/stargz-containers/gcc:11.2.0-esgz"
 	imageName := strings.Split(strings.Split(imageRef, "/")[2], ":")[0]
-	snapshotter := "cvmfs-snapshotter"
+	snapshotter := "stargz"
 
 	image, err := client.Pull(ctx, imageRef,
 		containerd.WithSchema1Conversion,
@@ -49,7 +50,8 @@ func main() {
 	}
 	defer cleanupImage()
 
-	command := `echo '#include <stdio.h>\n int main() { printf("Hello World\\n"); return 0; }' > /tmp/main.c && gcc -o /tmp/a.out /tmp/main.c && /tmp/a.out`
+	command := "export CMS_INPUT_FILES=file:///tmp/0431F9FA-6202-E311-8B98-002481E1501E.root && /opt/cms/entrypoint.sh cmsRun /configs/demoanalyzer_cfg_level4MC.py"
+	// command := `echo '#include <stdio.h>\n int main() { printf("Hello World\\n"); return 0; }' > /tmp/main.c && gcc -o /tmp/a.out /tmp/main.c && /tmp/a.out`
 	mounts := []specs.Mount{
 		{
 			Type:        "bind",

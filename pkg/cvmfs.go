@@ -102,7 +102,7 @@ func (proc *CvmfsProcess) StopProcess() {
 
 	for _, s := range snapshots {
 		mountpoint := snapshotDir + s.Name() + "/fs"
-		_ = syscall.Unmount(mountpoint, syscall.MNT_FORCE)
+		_ = syscall.Unmount(mountpoint, 0)
 	}
 	err = os.RemoveAll(proc.root)
 	if err != nil {
