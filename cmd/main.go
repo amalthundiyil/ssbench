@@ -90,6 +90,13 @@ func main() {
 			},
 		})
 		drivers = append(drivers, framework.BenchmarkTestDriver{
+			TestName:      "cvmfs " + shortName,
+			NumberOfTests: numberOfTests,
+			TestFunction: func(b *testing.B) {
+				benchmark.Cvmfs(ctx, b, "cvmfs "+shortName, image)
+			},
+		})
+		drivers = append(drivers, framework.BenchmarkTestDriver{
 			TestName:      "soci " + shortName,
 			NumberOfTests: numberOfTests,
 			TestFunction: func(b *testing.B) {
@@ -102,13 +109,6 @@ func main() {
 			TestFunction: func(b *testing.B) {
 				benchmark.Stargz(ctx, b, "stargz "+shortName, image)
 			}})
-		drivers = append(drivers, framework.BenchmarkTestDriver{
-			TestName:      "cvmfs " + shortName,
-			NumberOfTests: numberOfTests,
-			TestFunction: func(b *testing.B) {
-				benchmark.Cvmfs(ctx, b, "cvmfs "+shortName, image)
-			},
-		})
 	}
 
 	benchmarks := framework.BenchmarkFramework{

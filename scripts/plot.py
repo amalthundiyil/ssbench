@@ -50,7 +50,7 @@ for image, snapshotters in benchmark_result_cleaned.items():
     stack_items = ["pull_time", "create_time", "run_time"]
     fill_styles = [0, 3005, 3001]
     fill_colors = [ROOT.kGray, ROOT.kGray+2, ROOT.kBlack]
-    legend = ROOT.TLegend(0.9,0.7,0.48,0.898)
+    legend = ROOT.TLegend(0.7,0.7,0.8,0.898)
 
     for item_idx, item in enumerate(stack_items):
         for snapshotter_idx, snapshotter in enumerate(snapshotters):
@@ -58,13 +58,16 @@ for image, snapshotters in benchmark_result_cleaned.items():
             histogram.SetBinContent(snapshotter_idx + 1, benchmark_result_cleaned[image][snapshotter][item])
             histogram.GetXaxis().SetTickLength(0)
             histogram.GetYaxis().SetTitleOffset(1.7)
+            histogram.GetXaxis().SetLabelSize(0.06)
             histogram.SetMinimum(0)
+            histogram.SetLineColor(1)
             histogram.SetFillStyle(fill_styles[item_idx])
             histogram.SetFillColor(fill_colors[item_idx])
 
-            if item_idx == 0:
-                histogram.GetXaxis().SetBinLabel(snapshotter_idx + 1, snapshotter)
-                histogram.GetXaxis().SetLabelSize(0.06)
+            if item_idx == 0 and snapshotter_idx == 0:
+                for s_idx, s_name in enumerate(snapshotters):
+                    histogram.GetXaxis().SetBinLabel(s_idx + 1, s_name)
+
             if snapshotter_idx == 0:
                 label = " ".join([w.capitalize() for w in item.split("_")])
                 legend.AddEntry(histogram, label, "f")
@@ -72,14 +75,14 @@ for image, snapshotters in benchmark_result_cleaned.items():
             stack.Add(histogram)
     
     canvas.Draw()
-    histogram.Draw()
-    stack.Draw()
+    stack.Draw("hist")
     stack.GetXaxis().SetTickLength(0)
     stack.GetXaxis().SetLabelSize(0.06)
     stack.GetXaxis().SetTickLength(0)
     # ROOT.gPad.SetLeftMargin(0.15)
     stack.GetYaxis().SetTitleOffset(1.22)
     stack.GetYaxis().SetTitle("Time [s]")
+    legend.SetTextSize(0.03)
     legend.SetBorderSize(0)
     legend.Draw()
     canvas.SaveAs(f"output/plots/{image}.png")
